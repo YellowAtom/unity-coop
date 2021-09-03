@@ -1,0 +1,56 @@
+"unitycoop"
+{
+	"base"		"base"
+	"title"		"Unity Coop"
+	"author"	"Yell0wAt0m"
+	"category"	"pve"
+	"menusystem"	"1"
+	
+	"settings"
+	{
+		1
+		{
+			"name"		"unity_allowautorespawn"
+			"text"		"Enable Respawning"
+			"help"		"Turns on automatically respawning after a set amount of time."
+			"type"		"CheckBox"
+			"default"	"1"
+		}
+		2
+		{
+			"name"		"unity_autorespawntime"
+			"text"		"Respawn Waiting Time"
+			"help"		"The amount of time between dying and automically respawning."
+			"type"		"Numeric"
+			"default"	"60"
+		}
+		3
+		{
+			"name"		"unity_allowcommands"
+			"text"		"Enable Commands"
+			"help"		"Enables the chat commands system such as /bringall."
+			"type"		"CheckBox"
+			"default"	"1"
+			"singleplayer"	"1"
+		}
+		4
+		{
+			"name"		"unity_allowcustommodels"
+			"text"		"Enable Custom Models"
+			"help"		"Shows all player models installed instead of just hl2 rebels."
+			"type"		"CheckBox"
+			"default"	"1"
+			"singleplayer"	"1"
+		}
+		5
+		{
+			"name"		"gmod_suit"
+			"text"		"Enable HEV Suit"
+			"help"		"Set to non zero to enable Half-Life 2 aux suit power stuff."
+			"type"		"CheckBox"
+			"default"	"0"
+			"singleplayer"	"1"
+			"dontcreate"	"1"
+		}
+	}
+}
