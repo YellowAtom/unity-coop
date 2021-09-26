@@ -66,8 +66,8 @@ function GM:DrawDeathNotice( x, y )
 	return
 end
 
-function GM:GetFallDamage( ply, flFallSpeed )
-	return ( flFallSpeed - 526.5 ) * ( 100 / 396 ) -- the Source SDK value
+function GM:GetFallDamage(client, fallSpeed)
+	return ( fallSpeed - 526.5 ) * ( 100 / 396 ) -- the Source SDK value
 end
 
 function GM:PlayerNoClip(client, desiredNoClipState)
