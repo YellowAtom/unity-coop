@@ -172,22 +172,48 @@ concommand.Add("unity_dropweapon", function( client )
 	end
 end)
 
+local ammoItemTranslation = {
+	["pistol"] = "models/items/boxsrounds.mdl",
+	["smg1"] = "models/items/boxmrounds.mdl",
+	["buckshot"] = "models/items/boxbuckshot.mdl",
+	["ar2"] = "models/items/combine_rifle_cartridge01.mdl",
+	["xbowbolt"] = "models/items/crossbowrounds.mdl",
+	["357"] = "models/items/357ammo.mdl",
+	["grenade"] = "models/items/grenadeammo.mdl",
+	["rpg_round"] = "models/weapons/w_missile_closed.mdl"
+}
+
 concommand.Add("unity_dropammo", function( client ) 
     local weapon = client:GetActiveWeapon()
 
 	if ( IsValid( weapon ) ) then
-		local maxClip = weapon:GetMaxClip1()
 		local ammoType = weapon:GetPrimaryAmmoType()
+		local ammoTypeName = string.lower(game.GetAmmoName( ammoType ) or "")
+		local ammoCount = client:GetAmmoCount( ammoType )
+		local dropAmount = weapon:GetMaxClip1()
 
-		if client:GetAmmoCount( ammoType ) >= maxClip then
-			client:RemoveAmmo( maxClip, ammoType )
-
-			local ent = ents.Create( "item_ammo_" .. game.GetAmmoName( ammoType ) ) --Potentially exploitable if ammo clip isn't the same as an ammo box.
-
-			if !IsValid( ent ) then return end 
-			ent:SetPos( client:GetPos() + ( client:GetAimVector() * Vector(100, 0, 0) ) ) 
-			ent:Spawn()
+		if ammoCount < dropAmount then
+			dropAmount = ammoCount
 		end
+
+		if ammoCount <= 0 then return end
+
+		client:RemoveAmmo( dropAmount, ammoType )
+
+		local entity = ents.Create( "unity_ammo" )
+		if !IsValid( entity ) then return end
+		
+		entity:SetAmmoAmount( dropAmount )
+		entity:SetAmmoType( ammoTypeName )
+		entity:SetModel( ammoItemTranslation[ammoTypeName] )
+
+		local traceData = {}
+			traceData.start = client:GetShootPos()
+			traceData.endpos = traceData.start + client:GetAimVector() * 96
+			traceData.filter = client
+
+		entity:SetPos( util.TraceLine(traceData).HitPos )
+		entity:Spawn()
 	end
 end)
 
