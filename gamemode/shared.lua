@@ -15,7 +15,11 @@ function unity.PlayerNotify( client, text )
 end
 
 function GM:Initialize()
-	
+	--Need to put this in a more suitable hook.
+	if SERVER then
+		RunConsoleCommand("skill", 2)
+		game.SetSkillLevel( 2 )
+	end
 end
 
 unity.defaultPlayerModels = {
@@ -65,14 +69,15 @@ function GM:PlayerSetModel(client)
 
 	client:SetModel(randomModel)
 	client:SetNWString("unitymodel", randomModel)
+
+	client:SetupHands()
 end
 
 function GM:PlayerLoadout(client)
-	client:SetWalkSpeed( 200 )
-	client:SetCrouchedWalkSpeed( 0.5 )
-	client:SetRunSpeed( 300 )
-	client:SetJumpPower( 200 )
-	
+	client:SetWalkSpeed( 190 )
+	client:SetRunSpeed( 320 )
+	client:SetCrouchedWalkSpeed( 0.3333 )
+
 	client:SetCollisionGroup( 15 )
 	client:AllowFlashlight( true )
 
