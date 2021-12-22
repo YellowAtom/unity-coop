@@ -89,16 +89,21 @@ function PANEL:SettingsTab( parent )
 
 	local respawnTimeConvar = GetConVar("unity_autorespawntime")
 
-	local convarControlText = settingsScroll:Add( "DNumSlider" )
-	convarControlText:Dock( TOP )
-	convarControlText:DockMargin(10, 0, 400, 5)
-	convarControlText:SetText( "Respawn Waiting Time" )
-	convarControlText:SetMin( 0 )
-	convarControlText:SetMax( 300 )
-	convarControlText:SetDecimals( 0 )
-	convarControlText:SetValue( respawnTimeConvar:GetInt() )  
-	convarControlText:SetTooltip( respawnTimeConvar:GetHelpText() )
-	convarControlText:SetConVar( "unity_autorespawntime" )
+	local convarControlRTime = settingsScroll:Add( "DNumberWang" )
+	convarControlRTime:Dock( TOP )
+	convarControlRTime:DockMargin(10, 0, 680, 5)
+	convarControlRTime:SetMin( 0 )
+	convarControlRTime:SetMax( 300 )
+	convarControlRTime:SetDecimals( 0 )
+	convarControlRTime:SetValue( respawnTimeConvar:GetInt() )  
+	convarControlRTime:SetTooltip( respawnTimeConvar:GetHelpText() )
+	convarControlRTime:SetConVar( "unity_autorespawntime" )
+
+	local convarControlRTimeText = settingsScroll:Add( "DLabel" )
+	convarControlRTimeText:Dock( TOP )
+	convarControlRTimeText:DockMargin(53, -25, 0, 5) --Scuffed
+	convarControlRTimeText:SetText( "Respawn Waiting Time" )
+	convarControlRTimeText:SetColor( Color(0, 0, 0) )
 
 	return container
 end
