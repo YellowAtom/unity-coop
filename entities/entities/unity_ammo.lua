@@ -18,12 +18,12 @@ if SERVER then
 	function ENT:Initialize()
 		self:SetModel(self:GetModel() != "models/error.mdl" and self:GetModel() or "models/items/boxmrounds.mdl")
 
-		self:PhysicsInit(SOLID_VPHYSICS)
-		self:SetMoveType(MOVETYPE_VPHYSICS)
-		self:SetSolid(SOLID_VPHYSICS)
-		self:SetCollisionGroup(COLLISION_GROUP_WEAPON)
-		self:DrawShadow(true)
-		self:SetTrigger(true)
+		self:PhysicsInit( SOLID_VPHYSICS )
+		self:SetMoveType( MOVETYPE_VPHYSICS )
+		self:SetSolid( SOLID_VPHYSICS )
+		self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+		self:DrawShadow( true )
+		self:SetTrigger( true )
 
 		local physObj = self:GetPhysicsObject()
 
@@ -32,10 +32,11 @@ if SERVER then
 		end
 	end
 
-	function ENT:StartTouch( entity )
-		if entity:IsPlayer() then
+	function ENT:Touch( entity )
+		if entity:IsPlayer() and hook.Run("PlayerCanPickupItem", entity, self) then
 			entity:GiveAmmo(self:GetAmmoAmount(), self:GetAmmoType())
 
+			self:SetTrigger( false )
 			self:Remove()
 		end
 	end
