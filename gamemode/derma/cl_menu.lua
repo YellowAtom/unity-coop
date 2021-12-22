@@ -7,21 +7,21 @@ function PANEL:CustomizationTab( parent )
 	local container = vgui.Create( "DPanel", parent )
 	local client = LocalPlayer()
 
-	self.ModelPanel = vgui.Create( "DModelPanel", container )
-	self.ModelPanel:SetSize( 200, 400 )
-	self.ModelPanel:Dock( RIGHT )
-	self.ModelPanel:SetFOV( 30 )
-	self.ModelPanel:SetModel( client:GetModel() )
+	self.modelPanel = vgui.Create( "DModelPanel", container )
+	self.modelPanel:SetSize( 200, 400 )
+	self.modelPanel:Dock( RIGHT )
+	self.modelPanel:SetFOV( 30 )
+	self.modelPanel:SetModel( client:GetModel() )
 
-	function self.ModelPanel:LayoutEntity( entity )
-		if ( self.bAnimated ) then
-			self:RunAnimation()
-		end
+	function self.modelPanel:LayoutEntity( entity )
+		entity:SetSequence(entity:LookupSequence("menu_walk"))
+		self:RunAnimation()
 
 		entity:SetAngles(Angle(0, 45, 0))
+		entity:SetPos(Vector(0, 0, 5))
 	end
 
-	function self.ModelPanel.Entity:GetPlayerColor()
+	function self.modelPanel.Entity:GetPlayerColor()
 		return client:GetPlayerColor()
 	end
 
@@ -47,7 +47,7 @@ function PANEL:CustomizationTab( parent )
 		ListItem.OnMousePressed = function()
 			client:ConCommand("unity_setplayermodel " .. v)
 
-			self.ModelPanel:SetModel( v )
+			self.modelPanel:SetModel( v )
 		end
 	end
 
