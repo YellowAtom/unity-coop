@@ -37,12 +37,21 @@
 		{
 			"name"		"unity_allowcustommodels"
 			"text"		"Enable Custom Models"
-			"help"		"Shows all player models installed instead of just hl2 rebels."
+			"help"		"Shows all player models installed instead of just Half-Life 2 Rebels."
 			"type"		"CheckBox"
 			"default"	"1"
 			"singleplayer"	"1"
 		}
 		5
+		{
+			"name"		"unity_givegravitygun"
+			"text"		"Give Gravity Gun"
+			"help"		"Makes players spawn with the gravity gun."
+			"type"		"CheckBox"
+			"default"	"1"
+			"singleplayer"	"1"
+		}
+		6
 		{
 			"name"		"gmod_suit"
 			"text"		"Enable HEV Suit"
