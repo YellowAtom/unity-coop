@@ -81,6 +81,10 @@ function GM:PlayerLoadout(client)
 	client:SetCollisionGroup( 15 )
 	client:AllowFlashlight( true )
 
+	if ( GetConVar("unity_givegravitygun"):GetInt() > 0 ) then
+		client:Give("weapon_physcannon")
+	end
+
 	client:SetMoveType( MOVETYPE_WALK ) 
 end
 

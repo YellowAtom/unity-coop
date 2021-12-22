@@ -70,7 +70,8 @@ function PANEL:SettingsTab( parent )
 	local gamemodeConvars = {
 		["unity_allowcommands"] = "Enable Commands",
 		["unity_allowcustommodels"] = "Enable Custom Models",
-		["unity_allowautorespawn"] = "Enable Respawning"
+		["unity_allowautorespawn"] = "Enable Respawning",
+		["unity_givegravitygun"] = "Give Gravity Gun"
 	}
 
 	for k, v in pairs(gamemodeConvars) do
