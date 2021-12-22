@@ -155,12 +155,39 @@ hook.Add("PlayerDeathThink", "PlayerDontSpawn", function( client )
 	return false
 end)
 
+hook.Add( "PlayerUse", "unityUseGesture", function( client, entity )
+	if (client:IsPlayer() and client:Alive()) then
+		client:DoAnimationEvent( ACT_GMOD_GESTURE_ITEM_GIVE )
+	end
+end)
+
+hook.Add("PlayerCanPickupWeapon", "unityWeaponPickupModifications", function( client, weapon )
+    if ( client:HasWeapon( weapon:GetClass() ) ) then
+		client:GiveAmmo(weapon:Clip1(), weapon:GetPrimaryAmmoType())
+		weapon:SetClip1( 0 )
+
+		return false
+	end
+
+	if (client.unityWeaponPickupDelay) then
+		return false
+	end
+end)
+
+hook.Add("PlayerCanPickupItem", "unityItemPickupModifications", function( client, entity )
+	if (client.unityItemPickupDelay) then
+		return false
+	end
+end)
+
 // Console Commands
 
 concommand.Add("unity_setplayermodel", function( client, cmd, args, argStr )
     if IsValid(client) then
 		client:SetModel( argStr )
 		client:SetNWString("unitymodel", argStr)
+
+		client:SetupHands()
 	end
 end)
 
@@ -168,7 +195,32 @@ concommand.Add("unity_dropweapon", function( client )
     local weapon = client:GetActiveWeapon()
 
 	if ( IsValid( weapon ) ) then
-		client:DropWeapon(weapon, client:GetEyeTrace().EndPos)
+		local weaponClass = weapon:GetClass()
+
+		local entity = ents.Create( weaponClass )
+		if !IsValid( entity ) then return end
+
+		client:DoAnimationEvent( ACT_GMOD_GESTURE_ITEM_DROP )
+
+		client:StripWeapon( weaponClass )
+
+		entity:SetPos( client:GetPos() + Vector(0, 0, 50) )
+		entity:Spawn()
+
+		local physObj = entity:GetPhysicsObject()
+
+		if IsValid( physObj ) then
+			physObj:SetVelocity( client:GetAimVector() * 200 )
+		end
+
+		entity:SetClip1( weapon:Clip1() )
+		entity:SetClip2( weapon:Clip2() )
+
+		client.unityWeaponPickupDelay = true
+
+		timer.Create("unityWeaponPickupDelay", 1.5, 1, function() 
+			client.unityWeaponPickupDelay = false
+		end)
 	end
 end)
 
@@ -186,7 +238,7 @@ local ammoItemTranslation = {
 concommand.Add("unity_dropammo", function( client ) 
     local weapon = client:GetActiveWeapon()
 
-	if ( IsValid( weapon ) ) then
+	if ( IsValid( weapon ) and weapon:GetClass() != "weapon_frag" ) then
 		local ammoType = weapon:GetPrimaryAmmoType()
 		local ammoTypeName = string.lower(game.GetAmmoName( ammoType ) or "")
 		local ammoCount = client:GetAmmoCount( ammoType )
@@ -207,13 +259,23 @@ concommand.Add("unity_dropammo", function( client )
 		entity:SetAmmoType( ammoTypeName )
 		entity:SetModel( ammoItemTranslation[ammoTypeName] )
 
-		local traceData = {}
-			traceData.start = client:GetShootPos()
-			traceData.endpos = traceData.start + client:GetAimVector() * 96
-			traceData.filter = client
+		client:DoAnimationEvent( ACT_GMOD_GESTURE_ITEM_DROP )
 
-		entity:SetPos( util.TraceLine(traceData).HitPos )
+		entity:SetPos( client:GetPos() + Vector(0, 0, 50) )
+		entity:SetAngles( client:GetAngles() )
 		entity:Spawn()
+
+		local physObj = entity:GetPhysicsObject()
+
+		if IsValid( physObj ) then
+			physObj:SetVelocity( client:GetAimVector() * 200 )
+		end
+
+		client.unityItemPickupDelay = true
+
+		timer.Create("unityItemPickupDelay", 1.5, 1, function() 
+			client.unityItemPickupDelay = false
+		end)
 	end
 end)
 
