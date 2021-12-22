@@ -46,6 +46,7 @@ function PANEL:CustomizationTab( parent )
 		ListItem:SetModel( v )
 		ListItem.OnMousePressed = function()
 			client:ConCommand("unity_setplayermodel " .. v)
+
 			self.ModelPanel:SetModel( v )
 		end
 	end
@@ -102,9 +103,27 @@ function PANEL:SettingsTab( parent )
 
 	local convarControlRTimeText = settingsScroll:Add( "DLabel" )
 	convarControlRTimeText:Dock( TOP )
-	convarControlRTimeText:DockMargin(53, -25, 0, 5) --Scuffed
+	convarControlRTimeText:DockMargin(53, -25, 0, 5)
 	convarControlRTimeText:SetText( "Respawn Waiting Time" )
 	convarControlRTimeText:SetColor( Color(0, 0, 0) )
+
+	local difficultyConvar = GetConVar("unity_difficulty")
+
+	local convarControlDifficulty = settingsScroll:Add( "DNumberWang" )
+	convarControlDifficulty:Dock( TOP )
+	convarControlDifficulty:DockMargin(10, 0, 680, 5)
+	convarControlDifficulty:SetMin( 1 )
+	convarControlDifficulty:SetMax( 3 )
+	convarControlDifficulty:SetDecimals( 0 )
+	convarControlDifficulty:SetValue( difficultyConvar:GetInt() )  
+	convarControlDifficulty:SetTooltip( difficultyConvar:GetHelpText() )
+	convarControlDifficulty:SetConVar( "unity_difficulty" )
+
+	local convarControlDifficultyText = settingsScroll:Add( "DLabel" )
+	convarControlDifficultyText:Dock( TOP )
+	convarControlDifficultyText:DockMargin(53, -25, 0, 5)
+	convarControlDifficultyText:SetText( "Difficulty" )
+	convarControlDifficultyText:SetColor( Color(0, 0, 0) )
 
 	return container
 end
@@ -138,9 +157,15 @@ function PANEL:HelpTab( parent )
 		control:Dock( TOP )
 	end
 
+	local difficultyTranslation = {
+		"Easy",
+		"Normal",
+		"Hard"
+	}
+
 	local gamemodeDetails = vgui.Create( "DLabel", container )
-	gamemodeDetails:SetText( string.format("Version: %s\nGamemode by %s", GM.Version, GM.Author) )
-	gamemodeDetails:SetColor(Color(0, 0, 0))
+	gamemodeDetails:SetText( string.format("Difficulty: %s\nVersion: %s\nGamemode by %s", difficultyTranslation[game.GetSkillLevel()], GM.Version, GM.Author) )
+	gamemodeDetails:SetColor( Color(0, 0, 0) )
 	gamemodeDetails:SetAutoStretchVertical( true )
 	gamemodeDetails:SetFont("Default")
 	gamemodeDetails:Dock( BOTTOM )

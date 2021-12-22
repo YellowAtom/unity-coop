@@ -15,10 +15,17 @@ function unity.PlayerNotify( client, text )
 end
 
 function GM:Initialize()
-	--Need to put this in a more suitable hook.
 	if SERVER then
-		RunConsoleCommand("skill", 2)
-		game.SetSkillLevel( 2 )
+		local difficulty = GetConVar("unity_difficulty"):GetInt()
+
+		if difficulty > 3 then
+			difficulty = 3
+		elseif difficulty < 1 then
+			difficulty = 1
+		end
+
+		RunConsoleCommand("skill", difficulty)
+		game.SetSkillLevel( difficulty )
 	end
 end
 
@@ -59,17 +66,7 @@ unity.defaultPlayerModels = {
 }
 
 function GM:PlayerSetModel(client)
-	if client:GetNWString("unitymodel", false) then
-		client:SetModel(client:GetNWString("unitymodel"))
-
-		return
-	end
-	
-	local randomModel = unity.defaultPlayerModels[math.random(#unity.defaultPlayerModels)]
-
-	client:SetModel(randomModel)
-	client:SetNWString("unitymodel", randomModel)
-
+	client:SetModel(client:GetInfo("unity_playermodel"))
 	client:SetupHands()
 end
 

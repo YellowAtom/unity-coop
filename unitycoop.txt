@@ -10,13 +10,22 @@
 	{
 		1
 		{
+			"name"		"unity_difficulty"
+			"text"		"Difficulty"
+			"help"		"The difficulty of the game. 1 = Easy, 2 = Normal, 3 = Hard."
+			"type"		"Numeric"
+			"default"	"2"
+			"singleplayer"	"1"
+		}
+		2
+		{
 			"name"		"unity_allowautorespawn"
 			"text"		"Enable Respawning"
 			"help"		"Turns on automatically respawning after a set amount of time."
 			"type"		"CheckBox"
 			"default"	"1"
 		}
-		2
+		3
 		{
 			"name"		"unity_autorespawntime"
 			"text"		"Respawn Waiting Time"
@@ -24,7 +33,7 @@
 			"type"		"Numeric"
 			"default"	"60"
 		}
-		3
+		4
 		{
 			"name"		"unity_allowcommands"
 			"text"		"Enable Commands"
@@ -33,7 +42,7 @@
 			"default"	"1"
 			"singleplayer"	"1"
 		}
-		4
+		5
 		{
 			"name"		"unity_allowcustommodels"
 			"text"		"Enable Custom Models"
@@ -42,16 +51,16 @@
 			"default"	"1"
 			"singleplayer"	"1"
 		}
-		5
+		6
 		{
 			"name"		"unity_givegravitygun"
 			"text"		"Give Gravity Gun"
 			"help"		"Makes players spawn with the gravity gun."
 			"type"		"CheckBox"
-			"default"	"1"
+			"default"	"0"
 			"singleplayer"	"1"
 		}
-		6
+		7
 		{
 			"name"		"gmod_suit"
 			"text"		"Enable HEV Suit"

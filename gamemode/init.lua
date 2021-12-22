@@ -114,6 +114,21 @@ end
 
 // Hooks
 
+cvars.AddChangeCallback("unity_difficulty", function(convar, oldValue, newValue)
+	local difficulty = GetConVar(convar):GetInt()
+
+	if difficulty > 3 then
+		difficulty = 3
+	elseif difficulty < 1 then
+		difficulty = 1
+	end
+
+	if SERVER then
+		RunConsoleCommand("skill", difficulty)
+		game.SetSkillLevel( difficulty )
+	end
+end)
+
 hook.Add( "KeyPress", "SpectatingKeyPress", function( client, key )
 	if( key == IN_ATTACK ) then
 		if(!client:Alive() and client:GetMoveType() == MOVETYPE_OBSERVER) then
@@ -135,6 +150,10 @@ hook.Add("DoPlayerDeath", "DeathDropWeapons", function(client)
 	if not client:IsValid() then return end
 
 	for k, v in ipairs(client:GetWeapons()) do
+		if GetConVar("unity_givegravitygun"):GetInt() > 0 and v == "weapon_physcannon" then
+			continue
+		end
+
 		client:DropWeapon(v, nil, client:GetVelocity())
 	end
 end)
@@ -185,8 +204,7 @@ end)
 concommand.Add("unity_setplayermodel", function( client, cmd, args, argStr )
     if IsValid(client) then
 		client:SetModel( argStr )
-		client:SetNWString("unitymodel", argStr)
-
+		client:ConCommand( "unity_playermodel " .. argStr )
 		client:SetupHands()
 	end
 end)
