@@ -27,6 +27,9 @@ function unity.GameOver()
 
 		timer.Simple( 0.2, function() 
 			for k, v in ipairs(player.GetAll()) do
+				v:SetDeaths(0)
+				v:SetFrags(0)
+
 				v:UnSpectate()
 				v:Spawn()
 			end 
@@ -97,15 +100,19 @@ function unity.SetPlayerSpectating( client )
 		end 
 	end)
 
-	if( GetConVar("unity_allowautorespawn"):GetInt() > 0 ) then
-		timer.Create("UnityRespawnTimer", GetConVar("unity_autorespawntime"):GetInt(), 1, function()
-			client:UnSpectate()
-			client:Spawn()
+	if not ( GetConVar("unity_enablehardcore"):GetInt() > 0 ) then
+		GetConVar("unity_allowautorespawn"):SetInt( 1 )
+	end
 
+	if GetConVar("unity_allowautorespawn"):GetInt() > 0 then
+		timer.Create("UnityRespawnTimer", GetConVar("unity_autorespawntime"):GetInt(), 1, function()
 			local alivePlayers = unity.GetAlivePlayers()
 			local target = alivePlayers[math.random(#alivePlayers)]
 
-			if( target:IsPlayer() and target:Alive()) then
+			client:UnSpectate()
+			client:Spawn()
+
+			if( target and target:IsPlayer() and target:Alive()) then
 				client:SetPos(target:GetPos())
 			end
 		end)
@@ -134,6 +141,8 @@ hook.Add( "KeyPress", "SpectatingKeyPress", function( client, key )
 		if(!client:Alive() and client:GetMoveType() == MOVETYPE_OBSERVER) then
 			local target = unity.GetNextAlivePlayer(client:GetObserverTarget())
 
+			if not target then return end
+
 			if (target:IsValid() and target:Alive()) then
 				client:Spectate( OBS_MODE_CHASE )
 				client:SpectateEntity(target)
@@ -159,7 +168,7 @@ hook.Add("DoPlayerDeath", "DeathDropWeapons", function(client)
 end)
 
 hook.Add("PlayerDeath", "UnityGameOver", function()
-	if (unity.CheckAllDead()) then
+	if unity.CheckAllDead() and GetConVar("unity_enablehardcore"):GetInt() > 0 then
 		unity.GameOver()
 	end
 end)
