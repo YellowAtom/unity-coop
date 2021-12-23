@@ -51,8 +51,58 @@ function PANEL:CustomizationTab( parent )
 		end
 	end
 
+	local colorButton = vgui.Create( "DButton", container)
+	colorButton:SetText( "Colour Editor" )
+	colorButton:SetIcon( "icon16/color_wheel.png" )
+	colorButton:Dock( BOTTOM )
+	colorButton:DockMargin(3, 3, 400, 3)
+
+	function colorButton:DoClick()
+		chat.AddText("Coming Soon™")
+	end
+
 	return container
 end
+
+--[[ function PANEL:ColorEditor( parent )
+	local container = vgui.Create( "DFrame", parent )
+	container:SetSize( 200, 200 )
+	container:Center()
+	container:SetTitle( "Colour Editor" )
+	container:SetIcon("icon16/color_wheel.png")
+	container:SetDraggable( true )
+	container:ShowCloseButton( true )
+	container:MakePopup()
+
+	local colorPicker = vgui.Create("DRGBPicker", container)
+	colorPicker:Dock( LEFT )
+	colorPicker:SetSize(30, 190)
+
+	local colorCube = vgui.Create("DColorCube", container)
+	colorCube:Dock( LEFT )
+	colorCube:DockMargin(5, 0, 0, 0)
+	colorCube:SetSize(155, 155)
+
+	function colorPicker:OnChange( color )
+		local h = ColorToHSV(color)
+		local _, s, v = ColorToHSV(colorCube:GetRGB())
+		
+		color = HSVToColor(h, s, v)
+		colorCube:SetColor(color)
+
+		UpdateColors( color )
+	end
+
+	function colorCube:OnUserChanged( color )
+		UpdateColors( color )
+	end
+
+	function UpdateColors( color )
+		self.modelPanel.Entity:SetPlayerColor(Vector(color.r, color.g, color.b))
+	end
+
+	return container
+end ]]
 
 function PANEL:SettingsTab( parent )
 	local container = vgui.Create( "DPanel", parent )
@@ -72,7 +122,9 @@ function PANEL:SettingsTab( parent )
 		["unity_allowcommands"] = "Enable Commands",
 		["unity_allowcustommodels"] = "Enable Custom Models",
 		["unity_allowautorespawn"] = "Enable Respawning",
-		["unity_givegravitygun"] = "Give Gravity Gun"
+		["unity_givegravitygun"] = "Give Gravity Gun",
+		["unity_enablehardcore"] = "Enable Hardcore",
+		["gmod_suit"] = "Enable HEV Suit"
 	}
 
 	for k, v in pairs(gamemodeConvars) do
@@ -125,6 +177,13 @@ function PANEL:SettingsTab( parent )
 	convarControlDifficultyText:SetText( "Difficulty" )
 	convarControlDifficultyText:SetColor( Color(0, 0, 0) )
 
+	local helpText = settingsScroll:Add( "DLabel" )
+	helpText:Dock( TOP )
+	helpText:DockMargin(10, 0, 0, 5)
+	helpText:SetText( "Reopen Menu to View Changes!" )
+	helpText:SetColor( Color(0, 0, 0) )
+	helpText:SetFont( "Default" )
+
 	return container
 end
 
@@ -164,11 +223,12 @@ function PANEL:HelpTab( parent )
 	}
 
 	local gamemodeDetails = vgui.Create( "DLabel", container )
-	gamemodeDetails:SetText( string.format("Difficulty: %s\nVersion: %s\nGamemode by %s", difficultyTranslation[game.GetSkillLevel()], GM.Version, GM.Author) )
+	gamemodeDetails:SetText( string.format("Difficulty: %s %s\nVersion: %s\nGamemode by %s", difficultyTranslation[game.GetSkillLevel()], (GetConVar("unity_enablehardcore"):GetInt() > 0) and "(Hardcore)" or "" , GM.Version, GM.Author) )
 	gamemodeDetails:SetColor( Color(0, 0, 0) )
 	gamemodeDetails:SetAutoStretchVertical( true )
 	gamemodeDetails:SetFont("Default")
 	gamemodeDetails:Dock( BOTTOM )
+	gamemodeDetails:DockMargin(5, 0, 0, 5)
 	
 	return container
 end
