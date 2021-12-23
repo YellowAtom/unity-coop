@@ -19,13 +19,22 @@
 		}
 		2
 		{
+			"name"		"unity_enablehardcore"
+			"text"		"Enable Hardcore"
+			"help"		"Enables the map resetting when all players are dead."
+			"type"		"CheckBox"
+			"default"	"1"
+			"singleplayer"	"1"
+		}
+		3
+		{
 			"name"		"unity_allowautorespawn"
 			"text"		"Enable Respawning"
 			"help"		"Turns on automatically respawning after a set amount of time."
 			"type"		"CheckBox"
 			"default"	"1"
 		}
-		3
+		4
 		{
 			"name"		"unity_autorespawntime"
 			"text"		"Respawn Waiting Time"
@@ -33,7 +42,7 @@
 			"type"		"Numeric"
 			"default"	"60"
 		}
-		4
+		5
 		{
 			"name"		"unity_allowcommands"
 			"text"		"Enable Commands"
@@ -42,7 +51,7 @@
 			"default"	"1"
 			"singleplayer"	"1"
 		}
-		5
+		6
 		{
 			"name"		"unity_allowcustommodels"
 			"text"		"Enable Custom Models"
@@ -51,7 +60,7 @@
 			"default"	"1"
 			"singleplayer"	"1"
 		}
-		6
+		7
 		{
 			"name"		"unity_givegravitygun"
 			"text"		"Give Gravity Gun"
@@ -60,7 +69,7 @@
 			"default"	"0"
 			"singleplayer"	"1"
 		}
-		7
+		8
 		{
 			"name"		"gmod_suit"
 			"text"		"Enable HEV Suit"
