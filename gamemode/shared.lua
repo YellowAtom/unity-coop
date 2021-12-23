@@ -6,12 +6,12 @@ unity = unity or {}
 
 function unity.Notify( text )
 	for _, v in ipairs(player.GetAll()) do
-		v:ChatPrint(string.format("[COOP] %s", text))
+		v:ChatPrint( text )
 	end
 end
 
 function unity.PlayerNotify( client, text )
-	client:ChatPrint(string.format("[COOP] %s", text))
+	client:ChatPrint( text )
 end
 
 function GM:Initialize()
@@ -66,7 +66,14 @@ unity.defaultPlayerModels = {
 }
 
 function GM:PlayerSetModel(client)
-	client:SetModel(client:GetInfo("unity_playermodel"))
+	if client:IsBot() then
+		client:SetModel(unity.defaultPlayerModels[math.random(#unity.defaultPlayerModels)])
+
+		return
+	end
+
+	client:SetModel( client:GetInfo("unity_playermodel") )
+	client:SetPlayerColor( Vector(client:GetInfo("unity_playercolor")) )
 	client:SetupHands()
 end
 
@@ -94,7 +101,14 @@ function GM:GetFallDamage(client, fallSpeed)
 end
 
 function GM:PlayerNoClip(client, desiredNoClipState)
-	if client:IsAdmin() or not desiredNoClipState then
+	if ( client:IsAdmin() or not desiredNoClipState ) and client:Alive() then
+
+		client:SetNoDraw( false )
+
+		if desiredNoClipState then
+			client:SetNoDraw( true )
+		end
+
 		return true 
 	end
 
