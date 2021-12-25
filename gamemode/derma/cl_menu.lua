@@ -206,7 +206,8 @@ function PANEL:SettingsTab( parent )
 		["unity_allowautorespawn"] = "Enable Respawning",
 		["unity_givegravitygun"] = "Give Gravity Gun",
 		["unity_enablehardcore"] = "Enable Hardcore",
-		["gmod_suit"] = "Enable HEV Suit"
+		["gmod_suit"] = "Enable HEV Suit",
+		["unity_enablevignette"] = "Enable Vignette"
 	}
 
 	for k, v in pairs(gamemodeConvars) do

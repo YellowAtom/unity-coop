@@ -23,7 +23,7 @@
 			"text"		"Enable Hardcore"
 			"help"		"Enables the map resetting when all players are dead."
 			"type"		"CheckBox"
-			"default"	"1"
+			"default"	"0"
 			"singleplayer"	"1"
 		}
 		3
@@ -62,6 +62,15 @@
 		}
 		7
 		{
+			"name"		"unity_enablevignette"
+			"text"		"Enable Vignette"
+			"help"		"Adds a vignette for atmosphere."
+			"type"		"CheckBox"
+			"default"	"1"
+			"singleplayer"	"1"
+		}
+		8
+		{
 			"name"		"unity_givegravitygun"
 			"text"		"Give Gravity Gun"
 			"help"		"Makes players spawn with the gravity gun."
@@ -69,7 +78,7 @@
 			"default"	"0"
 			"singleplayer"	"1"
 		}
-		8
+		9
 		{
 			"name"		"gmod_suit"
 			"text"		"Enable HEV Suit"

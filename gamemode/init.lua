@@ -6,6 +6,9 @@ AddCSLuaFile("derma/cl_menu.lua")
 
 include("shared.lua")
 
+resource.AddFile("materials/icon16/unitylogo.png")
+resource.AddFile("materials/gui/unityvignette.png")
+
 unity = unity or {}
 
 function unity.GameOver()
