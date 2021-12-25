@@ -33,6 +33,7 @@
 			"help"		"Turns on automatically respawning after a set amount of time."
 			"type"		"CheckBox"
 			"default"	"1"
+			"singleplayer"	"1"
 		}
 		4
 		{
@@ -41,6 +42,7 @@
 			"help"		"The amount of time between dying and automically respawning."
 			"type"		"Numeric"
 			"default"	"60"
+			"singleplayer"	"1"
 		}
 		5
 		{
