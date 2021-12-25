@@ -72,7 +72,8 @@ end
 function PANEL:ColorEditor( parent, panel )
 	local container = vgui.Create( "DFrame", parent )
 	container:SetSize( 250, 200 )
-	container:Center()
+	local x, y = parent:GetPos()
+	container:SetPos( x - 280, y )
 	container:SetTitle( "Colour Editor" )
 	container:SetIcon("icon16/color_wheel.png")
 	container:SetDraggable( true )
@@ -297,6 +298,30 @@ function PANEL:HelpTab( parent )
 		control:Dock( TOP )
 	end
 
+	local commandsHeader = vgui.Create( "DLabel", container )
+	commandsHeader:SetText( "Commands" )
+	commandsHeader:SetColor(Color(0, 0, 0))
+	commandsHeader:SetAutoStretchVertical( true )
+	commandsHeader:SetFont("DermaLarge")
+	commandsHeader:DockMargin(10, 10, 0, 5)
+	commandsHeader:Dock( TOP )
+
+	local commandsScrollPanel = vgui.Create( "DScrollPanel", container )
+	commandsScrollPanel:Dock( FILL )
+	commandsScrollPanel:DockMargin(10, 0, 450, 5)
+
+	for k, v in pairs(unity.command.list) do
+		local command = commandsScrollPanel:Add( "DLabel" )
+		command:SetFont( "DermaDefault" )
+		command:SetText(string.format("/%s — %s", k, v.description))
+		command:SetColor(Color(0, 0, 0))
+		command:SetAutoStretchVertical( true )
+		command:SetWrap( true )
+		command:SizeToContents()
+		command:DockMargin(10, 0, 0, 5)
+		command:Dock( TOP )
+	end
+
 	local difficultyTranslation = {
 		"Easy",
 		"Normal",
@@ -330,7 +355,7 @@ function PANEL:Populate()
 	propertySheet:AddSheet( "Customization", self:CustomizationTab( container ), "icon16/user.png" )
 	propertySheet:AddSheet( "Help", self:HelpTab( container ), "icon16/help.png" )
 
-	if LocalPlayer():IsAdmin() then
+	if LocalPlayer():IsSuperAdmin() then
 		propertySheet:AddSheet( "Settings", self:SettingsTab( container ), "icon16/wrench.png" )
 	end
 end

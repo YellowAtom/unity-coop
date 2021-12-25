@@ -4,16 +4,6 @@ GM.Version = "β"
 
 unity = unity or {}
 
-function unity.Notify( text )
-	for _, v in ipairs(player.GetAll()) do
-		v:ChatPrint( text )
-	end
-end
-
-function unity.PlayerNotify( client, text )
-	client:ChatPrint( text )
-end
-
 function GM:Initialize()
 	if SERVER then
 		local difficulty = GetConVar("unity_difficulty"):GetInt()
@@ -92,6 +82,18 @@ function GM:PlayerLoadout(client)
 	client:SetMoveType( MOVETYPE_WALK ) 
 end
 
+function unity.Announce( text )
+	for _, v in ipairs(player.GetAll()) do
+		v:ChatPrint( text )
+	end
+end
+
+local playerMeta = FindMetaTable("Player")
+
+function playerMeta:Notify( text )
+	self:ChatPrint( text )
+end
+
 function GM:DrawDeathNotice( x, y )
 	return
 end
@@ -115,9 +117,15 @@ function GM:PlayerNoClip(client, desiredNoClipState)
 	return false
 end
 
+hook.Add("OnNPCKilled", "KillCount", function(npc, attacker, inflictor)
+	if attacker:IsPlayer() then
+		attacker:AddFrags( 1 )
+	end
+end)
+
 hook.Add("PlayerInitialSpawn", "UnityMOTD", function(client, transition)
 	if !transition then
-		unity.PlayerNotify( client, "Press F1 for the gamemode menu." )
+		client:Notify( "Press F1 for the gamemode menu." )
 	end
 end)
 
@@ -142,7 +150,7 @@ hook.Add("PlayerDeath", "UnityDeathSounds", function(client)
 end)
 
 hook.Add("PlayerDeath", "UnityDeathAlert", function(client)
-	unity.Notify( client:GetName() .. " has died!")
+	unity.Announce( client:GetName() .. " has died!")
 end)
 
 hook.Add( "IsSpawnpointSuitable", "CheckSpawnPoint", function( client, spawnpointent, bMakeSuitable )
@@ -188,3 +196,61 @@ end
 function GM:ShowSpare2(client)
 	client:ConCommand("unity_dropammo")
 end
+
+// Chat Commands
+
+--[[
+	TODO:
+	-Make commands support arguments.
+]]
+
+unity.command = unity.command or {}
+unity.command.list = unity.command.list or {}
+
+hook.Add("PlayerSay", "UnityCommandSay", function( sender, text, teamChat)
+	if (string.find(text, "/")) then
+		text = string.gsub(text, "/", "")
+		text = string.lower(text)
+
+		local command = false
+
+		if unity.command.list[text] then
+			command = unity.command.list[text]
+
+			if command.onCanRun( sender, text, teamChat ) and GetConVar("unity_allowcommands"):GetInt() > 0 then 
+				command.onRun( sender, text, teamChat ) 
+			else
+				sender:Notify( "You cannot use this command!" )
+			end
+
+			return ""
+		else
+			sender:Notify( "Command could not be found!" )
+
+			return ""
+		end
+	end
+end)
+
+function unity.command.Add( name, data )
+	unity.command.list[name] = data
+end
+ 
+unity.command.Add("bringall", {
+	description = "Brings all players to your location.",
+	onCanRun = function ( sender )
+		return true
+	end,
+	onRun = function( sender )
+
+		for _, target in ipairs(player.GetAll()) do
+			if(sender != target) then
+				if(target:IsPlayer() and target:Alive()) then
+					target:SetPos(sender:GetPos())
+				end
+			end
+		end
+
+		unity.Announce(string.format("%s has brought all players to their location.", sender:GetName()))
+	end
+})
