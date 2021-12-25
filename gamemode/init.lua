@@ -276,7 +276,7 @@ concommand.Add("unity_dropweapon", function( client )
 		local weaponClass = weapon:GetClass()
 
 		if GetConVar("unity_givegravitygun"):GetInt() > 0 and weaponClass == "weapon_physcannon" then
-			return false
+			return
 		end
 
 		local entity = ents.Create( weaponClass )
