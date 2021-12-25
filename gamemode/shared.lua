@@ -199,26 +199,27 @@ end
 
 // Chat Commands
 
---[[
-	TODO:
-	-Make commands support arguments.
-]]
-
 unity.command = unity.command or {}
 unity.command.list = unity.command.list or {}
 
 hook.Add("PlayerSay", "UnityCommandSay", function( sender, text, teamChat)
-	if (string.find(text, "/")) then
+	if (string.sub(text, 1, 1) == "/") then
 		text = string.gsub(text, "/", "")
-		text = string.lower(text)
 
-		local command = false
+		local postText = string.Explode(" ", text)
+		local arguments = {}
 
-		if unity.command.list[text] then
-			command = unity.command.list[text]
+		for i = 2, #postText do
+			arguments[#arguments + 1] = postText[i]
+		end
 
-			if command.onCanRun( sender, text, teamChat ) and GetConVar("unity_allowcommands"):GetInt() > 0 then 
-				command.onRun( sender, text, teamChat ) 
+		local commandName = string.lower(postText[1])
+
+		if unity.command.list[commandName] then
+			local command = unity.command.list[commandName]
+
+			if command.onCanRun( sender, arguments ) and GetConVar("unity_allowcommands"):GetInt() > 0 then 
+				command.onRun( sender, arguments ) 
 			else
 				sender:Notify( "You cannot use this command!" )
 			end
@@ -235,22 +236,41 @@ end)
 function unity.command.Add( name, data )
 	unity.command.list[name] = data
 end
+
+unity.command.Add("bring", {
+	description = "Brings the entered player to your location.",
+	onCanRun = function( client )
+		return true
+	end,
+	onRun = function( client, arguments )
+		for _, target in ipairs(player.GetAll()) do
+			if target:IsPlayer() and target:Alive() and target:GetName() == arguments[1] then
+				target:SetPos(client:GetPos())
+
+				unity.Announce(string.format("%s has brought %s to their location.", client:GetName(), target:GetName()))
+				return
+			end
+		end
+
+		client:Notify("Player not found!")
+	end
+})
  
 unity.command.Add("bringall", {
 	description = "Brings all players to your location.",
-	onCanRun = function ( sender )
+	onCanRun = function ( client )
 		return true
 	end,
-	onRun = function( sender )
+	onRun = function( client, arguments )
 
 		for _, target in ipairs(player.GetAll()) do
-			if(sender != target) then
+			if(client != target) then
 				if(target:IsPlayer() and target:Alive()) then
-					target:SetPos(sender:GetPos())
+					target:SetPos(client:GetPos())
 				end
 			end
 		end
 
-		unity.Announce(string.format("%s has brought all players to their location.", sender:GetName()))
+		unity.Announce(string.format("%s has brought all players to their location.", client:GetName()))
 	end
 })

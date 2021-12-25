@@ -299,28 +299,30 @@ function PANEL:HelpTab( parent )
 		control:Dock( TOP )
 	end
 
-	local commandsHeader = vgui.Create( "DLabel", container )
-	commandsHeader:SetText( "Commands" )
-	commandsHeader:SetColor(Color(0, 0, 0))
-	commandsHeader:SetAutoStretchVertical( true )
-	commandsHeader:SetFont("DermaLarge")
-	commandsHeader:DockMargin(10, 10, 0, 5)
-	commandsHeader:Dock( TOP )
+	if GetConVar("unity_allowcommands"):GetInt() > 0 then
+		local commandsHeader = vgui.Create( "DLabel", container )
+		commandsHeader:SetText( "Commands" )
+		commandsHeader:SetColor(Color(0, 0, 0))
+		commandsHeader:SetAutoStretchVertical( true )
+		commandsHeader:SetFont("DermaLarge")
+		commandsHeader:DockMargin(10, 10, 0, 5)
+		commandsHeader:Dock( TOP )
 
-	local commandsScrollPanel = vgui.Create( "DScrollPanel", container )
-	commandsScrollPanel:Dock( FILL )
-	commandsScrollPanel:DockMargin(10, 0, 450, 5)
+		local commandsScrollPanel = vgui.Create( "DScrollPanel", container )
+		commandsScrollPanel:Dock( FILL )
+		commandsScrollPanel:DockMargin(10, 0, 450, 5)
 
-	for k, v in pairs(unity.command.list) do
-		local command = commandsScrollPanel:Add( "DLabel" )
-		command:SetFont( "DermaDefault" )
-		command:SetText(string.format("/%s — %s", k, v.description))
-		command:SetColor(Color(0, 0, 0))
-		command:SetAutoStretchVertical( true )
-		command:SetWrap( true )
-		command:SizeToContents()
-		command:DockMargin(10, 0, 0, 5)
-		command:Dock( TOP )
+		for k, v in pairs(unity.command.list) do
+			local command = commandsScrollPanel:Add( "DLabel" )
+			command:SetFont( "DermaDefault" )
+			command:SetText(string.format("/%s — %s", k, v.description))
+			command:SetColor(Color(0, 0, 0))
+			command:SetAutoStretchVertical( true )
+			command:SetWrap( true )
+			command:SizeToContents()
+			command:DockMargin(10, 0, 0, 5)
+			command:Dock( TOP )
+		end
 	end
 
 	local difficultyTranslation = {
