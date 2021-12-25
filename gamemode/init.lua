@@ -208,6 +208,47 @@ hook.Add("PlayerCanPickupItem", "unityItemPickupModifications", function( client
 	end
 end)
 
+local ammoItemTranslation = {
+	["pistol"] = "models/items/boxsrounds.mdl",
+	["smg1"] = "models/items/boxmrounds.mdl",
+	["buckshot"] = "models/items/boxbuckshot.mdl",
+	["ar2"] = "models/items/combine_rifle_cartridge01.mdl",
+	["xbowbolt"] = "models/items/crossbowrounds.mdl",
+	["357"] = "models/items/357ammo.mdl",
+	["grenade"] = "models/items/grenadeammo.mdl",
+	["rpg_round"] = "models/weapons/w_missile_closed.mdl"
+}
+
+hook.Add( "PlayerAmmoChanged", "AmmoCap", function( client, ammoID, oldCount, newCount )
+	local ammoCap = game.GetAmmoMax(ammoID)
+	local ammoTypeName = string.lower(game.GetAmmoName(ammoID) or "")
+	local dif = newCount - ammoCap
+
+	if dif > 0 and not client.touchingUnityAmmo then
+		client:SetAmmo(ammoCap, ammoTypeName)
+
+		local entity = ents.Create( "unity_ammo" )
+		if !IsValid( entity ) then return end
+
+		client:DoAnimationEvent( ACT_GMOD_GESTURE_ITEM_DROP )
+		
+		entity:SetAmmoAmount( dif )
+		entity:SetAmmoType( ammoTypeName )
+		entity:SetModel( ammoItemTranslation[ammoTypeName] )
+
+		entity:SetPos( client:GetPos() + Vector(0, 0, 50) )
+		entity:SetAngles( client:GetAngles() )
+		entity:Spawn()
+
+		local physObj = entity:GetPhysicsObject()
+
+		if IsValid( physObj ) then
+			physObj:SetVelocity( client:GetAimVector() * 200 )
+		end
+
+	end
+end)
+
 // Console Commands
 
 concommand.Add("unity_setplayermodel", function( client, cmd, args, argStr )
@@ -254,17 +295,6 @@ concommand.Add("unity_dropweapon", function( client )
 		end)
 	end
 end)
-
-local ammoItemTranslation = {
-	["pistol"] = "models/items/boxsrounds.mdl",
-	["smg1"] = "models/items/boxmrounds.mdl",
-	["buckshot"] = "models/items/boxbuckshot.mdl",
-	["ar2"] = "models/items/combine_rifle_cartridge01.mdl",
-	["xbowbolt"] = "models/items/crossbowrounds.mdl",
-	["357"] = "models/items/357ammo.mdl",
-	["grenade"] = "models/items/grenadeammo.mdl",
-	["rpg_round"] = "models/weapons/w_missile_closed.mdl"
-}
 
 concommand.Add("unity_dropammo", function( client ) 
     local weapon = client:GetActiveWeapon()

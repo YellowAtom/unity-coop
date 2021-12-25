@@ -11,6 +11,8 @@ ENT.AdminSpawnable = false
 function ENT:SetupDataTables()
 	self:NetworkVar("Int", 0, "AmmoAmount")
 	self:NetworkVar("String", 0, "AmmoType")
+	self:NetworkVar("Bool", 0, "AmmoSpent")
+	self:SetAmmoSpent( false )
 end
 
 if SERVER then 
@@ -33,12 +35,39 @@ if SERVER then
 	end
 
 	function ENT:Touch( entity )
-		if entity:IsPlayer() and hook.Run("PlayerCanPickupItem", entity, self) then
-			entity:GiveAmmo(self:GetAmmoAmount(), self:GetAmmoType())
+		if entity:IsPlayer() and hook.Run("PlayerCanPickupItem", entity, self) and not self:GetAmmoSpent() then
+			entity.touchingUnityAmmo = true
 
-			self:SetTrigger( false )
+			local ammoAmount = self:GetAmmoAmount()
+			local ammoType = self:GetAmmoType()
+			local dif = entity:GetAmmoCount(ammoType) + ammoAmount - game.GetAmmoMax(game.GetAmmoID(ammoType))
+
+			if dif >= 0 then
+				if dif == ammoAmount then
+					return
+				end
+
+				entity:GiveAmmo(ammoAmount - dif, ammoType)
+
+				self:SetAmmoAmount(dif)
+
+				if dif == 0 then
+					self:SetAmmoSpent( true )
+					self:Remove()
+				end
+
+				return
+			end
+
+			entity:GiveAmmo(ammoAmount, ammoType)
+
+			self:SetAmmoSpent( true )
 			self:Remove()
 		end
+	end
+
+	function ENT:EndTouch( entity )
+		entity.touchingUnityAmmo = false
 	end
 
 	function ENT:PhysicsCollide(data, physObj)
