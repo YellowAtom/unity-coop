@@ -259,6 +259,13 @@ concommand.Add("unity_setplayermodel", function( client, cmd, args, argStr )
 	end
 end)
 
+concommand.Add("unity_setplayercolor", function( client, cmd, args, argStr )
+    if IsValid(client) then
+		client:SetPlayerColor( Vector(argStr) )
+		client:ConCommand( "unity_playercolor " .. argStr )
+	end
+end)
+
 concommand.Add("unity_dropweapon", function( client ) 
     local weapon = client:GetActiveWeapon()
 

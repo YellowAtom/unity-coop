@@ -6,6 +6,7 @@ local unity = unity or {}
 function PANEL:CustomizationTab( parent )
 	local container = vgui.Create( "DPanel", parent )
 	local client = LocalPlayer()
+	local panel = self
 
 	self.modelPanel = vgui.Create( "DModelPanel", container )
 	self.modelPanel:SetSize( 200, 400 )
@@ -48,6 +49,10 @@ function PANEL:CustomizationTab( parent )
 			client:ConCommand("unity_setplayermodel " .. v)
 
 			self.modelPanel:SetModel( v )
+
+			function panel.modelPanel.Entity:GetPlayerColor()
+				return client:GetPlayerColor()
+			end
 		end
 	end
 
@@ -58,15 +63,15 @@ function PANEL:CustomizationTab( parent )
 	colorButton:DockMargin(3, 3, 400, 3)
 
 	function colorButton:DoClick()
-		chat.AddText("Coming Soon™")
+		PANEL:ColorEditor( parent, panel )
 	end
 
 	return container
 end
 
---[[ function PANEL:ColorEditor( parent )
+function PANEL:ColorEditor( parent, panel )
 	local container = vgui.Create( "DFrame", parent )
-	container:SetSize( 200, 200 )
+	container:SetSize( 250, 200 )
 	container:Center()
 	container:SetTitle( "Colour Editor" )
 	container:SetIcon("icon16/color_wheel.png")
@@ -83,6 +88,66 @@ end
 	colorCube:DockMargin(5, 0, 0, 0)
 	colorCube:SetSize(155, 155)
 
+	local wangR = container:Add( "DNumberWang" )
+	wangR:Dock( TOP )
+	wangR:DockMargin(5, 0, 0, 3)
+	wangR:SetMin( 0 )
+	wangR:SetMax( 255 )
+	wangR:SetDecimals( 0 )
+	wangR:SetTextColor( Color(155, 0, 0) )
+	wangR:HideWang()
+	
+	function wangR:OnValueChanged( val )
+		local color = colorCube:GetRGB()
+		color.r = val
+
+		colorPicker:SetRGB( color )
+		colorCube:SetColor( color )
+	end
+
+	local wangG = container:Add( "DNumberWang" )
+	wangG:Dock( TOP )
+	wangG:DockMargin(5, 0, 0, 3)
+	wangG:SetMin( 0 )
+	wangG:SetMax( 255 )
+	wangG:SetDecimals( 0 )
+	wangG:SetTextColor( Color(0, 155, 0) )
+	wangG:HideWang()
+
+	function wangG:OnValueChanged( val )
+		local color = colorCube:GetRGB()
+		color.g = val
+
+		colorPicker:SetRGB( color )
+		colorCube:SetColor( color )
+	end
+
+	local wangB = container:Add( "DNumberWang" )
+	wangB:Dock( TOP )
+	wangB:DockMargin(5, 0, 0, 3)
+	wangB:SetMin( 0 )
+	wangB:SetMax( 255 )
+	wangB:SetDecimals( 0 )
+	wangB:SetTextColor( Color(0, 0, 155) )
+	wangB:HideWang()
+
+	function wangB:OnValueChanged( val )
+		local color = colorCube:GetRGB()
+		color.b = val
+
+		colorPicker:SetRGB( color )
+		colorCube:SetColor( color )
+	end
+
+	local color = LocalPlayer():GetPlayerColor():ToColor()
+
+	wangR:SetValue( color.r )
+	wangG:SetValue( color.g )
+	wangB:SetValue( color.b )
+
+	colorPicker:SetRGB( color )
+	colorCube:SetColor( color )
+
 	function colorPicker:OnChange( color )
 		local h = ColorToHSV(color)
 		local _, s, v = ColorToHSV(colorCube:GetRGB())
@@ -90,19 +155,35 @@ end
 		color = HSVToColor(h, s, v)
 		colorCube:SetColor(color)
 
-		UpdateColors( color )
+		wangR:SetText( color.r )
+		wangG:SetText( color.g )
+		wangB:SetText( color.b )
 	end
 
-	function colorCube:OnUserChanged( color )
-		UpdateColors( color )
+	function colorCube:OnUserChanged( color ) 
+		wangR:SetText( color.r )
+		wangG:SetText( color.g )
+		wangB:SetText( color.b )
 	end
 
-	function UpdateColors( color )
-		self.modelPanel.Entity:SetPlayerColor(Vector(color.r, color.g, color.b))
+	local confirmButton = vgui.Create( "DButton", container)
+	confirmButton:SetText( "Confirm" )
+	confirmButton:DockMargin(5, 0, 0, 3)
+	confirmButton:Dock( BOTTOM )
+
+	function confirmButton:DoClick()
+		local finalColor = colorCube:GetRGB()
+		finalColor = Vector(finalColor.r / 255, finalColor.g / 255, finalColor.b / 255)
+
+		LocalPlayer():ConCommand( "unity_setplayercolor " .. tostring(finalColor) )
+
+		function panel.modelPanel.Entity:GetPlayerColor()
+			return finalColor
+		end
 	end
 
 	return container
-end ]]
+end
 
 function PANEL:SettingsTab( parent )
 	local container = vgui.Create( "DPanel", parent )
