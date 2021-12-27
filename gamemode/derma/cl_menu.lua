@@ -189,83 +189,110 @@ end
 function PANEL:SettingsTab( parent )
 	local container = vgui.Create( "DPanel", parent )
 
-	local settingsScroll = vgui.Create( "DScrollPanel", container )
-	settingsScroll:Dock( FILL )
-
-	local settingsHeader = settingsScroll:Add( "DLabel" )
-	settingsHeader:SetText( "Server Settings" )
-	settingsHeader:SetColor(Color(0, 0, 0))
-	settingsHeader:SetAutoStretchVertical( true )
-	settingsHeader:SetFont("DermaLarge")
-	settingsHeader:Dock( TOP )
-	settingsHeader:DockMargin(10, 10, 0, 5)
-
-	local gamemodeConvars = {
+	local serverConvars = {
 		["unity_allowcommands"] = "Enable Commands",
 		["unity_allowcustommodels"] = "Enable Custom Models",
 		["unity_allowautorespawn"] = "Enable Respawning",
 		["unity_givegravitygun"] = "Give Gravity Gun",
 		["unity_enablehardcore"] = "Enable Hardcore",
-		["gmod_suit"] = "Enable HEV Suit",
-		["unity_enablevignette"] = "Enable Vignette"
+		["gmod_suit"] = "Enable HEV Suit"
 	}
 
-	for k, v in pairs(gamemodeConvars) do
-		local convar = GetConVar(k)
+	local clientConvars = {
+		["unity_vignette"] = "Enable Vignette"
+	}
+
+	local settingsScroll = vgui.Create( "DScrollPanel", container )
+	settingsScroll:Dock( FILL )
+
+	local clientSettingsHeader = settingsScroll:Add( "DLabel" )
+	clientSettingsHeader:SetText( "Client Settings" )
+	clientSettingsHeader:SetColor(Color(0, 0, 0))
+	clientSettingsHeader:SetAutoStretchVertical( true )
+	clientSettingsHeader:SetFont("DermaLarge")
+	clientSettingsHeader:Dock( TOP )
+	clientSettingsHeader:DockMargin(10, 10, 0, 5)
+
+	for k, v in pairs(clientConvars) do
+		local convar = GetConVar( k )
 
 		local convarControl = settingsScroll:Add( "DCheckBoxLabel" )
 		convarControl:SetText( v )
 		convarControl:SetTooltip( convar:GetHelpText() )
 		convarControl:SetTextColor(Color(0, 0, 0))
 		convarControl:SetConVar( k )
-		convarControl:SetValue( convar:GetBool() )
+		convarControl:SetValue(  LocalPlayer():GetInfo( k ) )
 		convarControl:SizeToContents()
 		convarControl:Dock( TOP )
 		convarControl:DockMargin(10, 0, 0, 5)
 	end
 
-	local respawnTimeConvar = GetConVar("unity_autorespawntime")
+	if LocalPlayer():IsSuperAdmin() then
+		local settingsHeader = settingsScroll:Add( "DLabel" )
+		settingsHeader:SetText( "Server Settings" )
+		settingsHeader:SetColor(Color(0, 0, 0))
+		settingsHeader:SetAutoStretchVertical( true )
+		settingsHeader:SetFont("DermaLarge")
+		settingsHeader:Dock( TOP )
+		settingsHeader:DockMargin(10, 10, 0, 5)
 
-	local convarControlRTime = settingsScroll:Add( "DNumberWang" )
-	convarControlRTime:Dock( TOP )
-	convarControlRTime:DockMargin(10, 0, 680, 5)
-	convarControlRTime:SetMin( 0 )
-	convarControlRTime:SetMax( 300 )
-	convarControlRTime:SetDecimals( 0 )
-	convarControlRTime:SetValue( respawnTimeConvar:GetInt() )  
-	convarControlRTime:SetTooltip( respawnTimeConvar:GetHelpText() )
-	convarControlRTime:SetConVar( "unity_autorespawntime" )
+		for k, v in pairs(serverConvars) do
+			local convar = GetConVar( k )
 
-	local convarControlRTimeText = settingsScroll:Add( "DLabel" )
-	convarControlRTimeText:Dock( TOP )
-	convarControlRTimeText:DockMargin(53, -25, 0, 5)
-	convarControlRTimeText:SetText( "Respawn Waiting Time" )
-	convarControlRTimeText:SetColor( Color(0, 0, 0) )
+			local convarControl = settingsScroll:Add( "DCheckBoxLabel" )
+			convarControl:SetText( v )
+			convarControl:SetTooltip( convar:GetHelpText() )
+			convarControl:SetTextColor(Color(0, 0, 0))
+			convarControl:SetConVar( k )
+			convarControl:SetValue( convar:GetBool() )
+			convarControl:SizeToContents()
+			convarControl:Dock( TOP )
+			convarControl:DockMargin(10, 0, 0, 5)
+		end
 
-	local difficultyConvar = GetConVar("unity_difficulty")
+		local respawnTimeConvar = GetConVar("unity_autorespawntime")
 
-	local convarControlDifficulty = settingsScroll:Add( "DNumberWang" )
-	convarControlDifficulty:Dock( TOP )
-	convarControlDifficulty:DockMargin(10, 0, 680, 5)
-	convarControlDifficulty:SetMin( 1 )
-	convarControlDifficulty:SetMax( 3 )
-	convarControlDifficulty:SetDecimals( 0 )
-	convarControlDifficulty:SetValue( difficultyConvar:GetInt() )  
-	convarControlDifficulty:SetTooltip( difficultyConvar:GetHelpText() )
-	convarControlDifficulty:SetConVar( "unity_difficulty" )
+		local convarControlRTime = settingsScroll:Add( "DNumberWang" )
+		convarControlRTime:Dock( TOP )
+		convarControlRTime:DockMargin(10, 0, 680, 5)
+		convarControlRTime:SetMin( 0 )
+		convarControlRTime:SetMax( 300 )
+		convarControlRTime:SetDecimals( 0 )
+		convarControlRTime:SetValue( respawnTimeConvar:GetInt() )  
+		convarControlRTime:SetTooltip( respawnTimeConvar:GetHelpText() )
+		convarControlRTime:SetConVar( "unity_autorespawntime" )
 
-	local convarControlDifficultyText = settingsScroll:Add( "DLabel" )
-	convarControlDifficultyText:Dock( TOP )
-	convarControlDifficultyText:DockMargin(53, -25, 0, 5)
-	convarControlDifficultyText:SetText( "Difficulty" )
-	convarControlDifficultyText:SetColor( Color(0, 0, 0) )
+		local convarControlRTimeText = settingsScroll:Add( "DLabel" )
+		convarControlRTimeText:Dock( TOP )
+		convarControlRTimeText:DockMargin(53, -25, 0, 5)
+		convarControlRTimeText:SetText( "Respawn Waiting Time" )
+		convarControlRTimeText:SetColor( Color(0, 0, 0) )
 
-	local helpText = settingsScroll:Add( "DLabel" )
-	helpText:Dock( TOP )
-	helpText:DockMargin(10, 0, 0, 5)
-	helpText:SetText( "Reopen Menu to View Changes!" )
-	helpText:SetColor( Color(0, 0, 0) )
-	helpText:SetFont( "Default" )
+		local difficultyConvar = GetConVar("unity_difficulty")
+
+		local convarControlDifficulty = settingsScroll:Add( "DNumberWang" )
+		convarControlDifficulty:Dock( TOP )
+		convarControlDifficulty:DockMargin(10, 0, 680, 5)
+		convarControlDifficulty:SetMin( 1 )
+		convarControlDifficulty:SetMax( 3 )
+		convarControlDifficulty:SetDecimals( 0 )
+		convarControlDifficulty:SetValue( difficultyConvar:GetInt() )  
+		convarControlDifficulty:SetTooltip( difficultyConvar:GetHelpText() )
+		convarControlDifficulty:SetConVar( "unity_difficulty" )
+
+		local convarControlDifficultyText = settingsScroll:Add( "DLabel" )
+		convarControlDifficultyText:Dock( TOP )
+		convarControlDifficultyText:DockMargin(53, -25, 0, 5)
+		convarControlDifficultyText:SetText( "Difficulty" )
+		convarControlDifficultyText:SetColor( Color(0, 0, 0) )
+
+		local helpText = settingsScroll:Add( "DLabel" )
+		helpText:Dock( TOP )
+		helpText:DockMargin(10, 0, 0, 5)
+		helpText:SetText( "Reopen Menu to View Changes!" )
+		helpText:SetColor( Color(0, 0, 0) )
+		helpText:SetFont( "Default" )
+	end
 
 	return container
 end
@@ -357,10 +384,7 @@ function PANEL:Populate()
 
 	propertySheet:AddSheet( "Customization", self:CustomizationTab( container ), "icon16/user.png" )
 	propertySheet:AddSheet( "Help", self:HelpTab( container ), "icon16/help.png" )
-
-	if LocalPlayer():IsSuperAdmin() then
-		propertySheet:AddSheet( "Settings", self:SettingsTab( container ), "icon16/wrench.png" )
-	end
+	propertySheet:AddSheet( "Settings", self:SettingsTab( container ), "icon16/wrench.png" )
 end
 
 vgui.Register("unityMenu", PANEL, "Panel")
