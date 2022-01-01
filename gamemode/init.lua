@@ -186,12 +186,6 @@ hook.Add("PlayerDeathThink", "PlayerDontSpawn", function( client )
 	return false
 end)
 
-hook.Add( "PlayerUse", "unityUseGesture", function( client, entity )
-	if (client:IsPlayer() and client:Alive()) then
-		client:DoAnimationEvent( ACT_GMOD_GESTURE_ITEM_GIVE )
-	end
-end)
-
 hook.Add("PlayerCanPickupWeapon", "unityWeaponPickupModifications", function( client, weapon )
     if ( client:HasWeapon( weapon:GetClass() ) ) then
 		client:GiveAmmo(weapon:Clip1(), weapon:GetPrimaryAmmoType())
