@@ -104,13 +104,6 @@ end
 
 function GM:PlayerNoClip(client, desiredNoClipState)
 	if ( client:IsAdmin() or not desiredNoClipState ) and client:Alive() then
-
-		client:SetNoDraw( false )
-
-		if desiredNoClipState then
-			client:SetNoDraw( true )
-		end
-
 		return true 
 	end
 
