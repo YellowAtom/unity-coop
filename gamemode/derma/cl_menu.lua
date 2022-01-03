@@ -227,7 +227,7 @@ function PANEL:SettingsTab( parent )
 		convarControl:DockMargin(10, 0, 0, 5)
 	end
 
-	if LocalPlayer():IsSuperAdmin() then
+	if LocalPlayer():IsAdmin() then
 		local settingsHeader = settingsScroll:Add( "DLabel" )
 		settingsHeader:SetText( "Server Settings" )
 		settingsHeader:SetColor(Color(0, 0, 0))
@@ -300,6 +300,30 @@ end
 function PANEL:HelpTab( parent )
 	local container = vgui.Create( "DPanel", parent )
 
+	local featuresHeader = vgui.Create( "DLabel", container )
+	featuresHeader:SetText( "Information" )
+	featuresHeader:SetColor(Color(0, 0, 0))
+	featuresHeader:SetAutoStretchVertical( true )
+	featuresHeader:SetFont("DermaLarge")
+	featuresHeader:DockMargin(10, 10, 0, 5)
+	featuresHeader:Dock( TOP )
+
+	local featuresText = vgui.Create( "DLabel", container )
+	featuresText:SetText( [[
+The host or an admin can adjust the difficulty of the game in settings.
+Hardcore Mode means when all players are dead at the same time the level resets.
+When you walk over a weapon you already own you take the ammo from it's clip but leave the weapon where it is.
+You can drop the ammo of the weapon you're currently holding as well as drop the weapon itself.
+You cannot pick up ammo of a weapon you don't currently have.
+Movement speed and jump height match Half-Life 2 instead of Garry's Mod.
+Scorebaord tracks NPC Kills and resets with the level.
+All weapons have the same ammo caps as Half-Life 2.]])
+	featuresText:SetColor(Color(0, 0, 0))
+	featuresText:SetAutoStretchVertical( true )
+	featuresText:SetFont("DermaDefault")
+	featuresText:DockMargin(10, 0, 0, 5)
+	featuresText:Dock( TOP )
+
 	local controlsHeader = vgui.Create( "DLabel", container )
 	controlsHeader:SetText( "Controls" )
 	controlsHeader:SetColor(Color(0, 0, 0))
@@ -337,7 +361,7 @@ function PANEL:HelpTab( parent )
 
 		local commandsScrollPanel = vgui.Create( "DScrollPanel", container )
 		commandsScrollPanel:Dock( FILL )
-		commandsScrollPanel:DockMargin(10, 0, 450, 5)
+		commandsScrollPanel:DockMargin(0, 0, 450, 5)
 
 		for k, v in pairs(unity.command.list) do
 			local command = commandsScrollPanel:Add( "DLabel" )
@@ -374,7 +398,7 @@ function PANEL:Populate()
 	container:SetSize( 750, 500 )
 	container:Center()
 	container:SetTitle( GM.Name )
-	container:SetIcon("icon16/unitylogo.png")
+	container:SetIcon( "icon16/unitylogo.png" )
 	container:SetDraggable( true )
 	container:ShowCloseButton( true )
 	container:MakePopup()
@@ -383,8 +407,8 @@ function PANEL:Populate()
 	propertySheet:Dock( FILL )
 
 	propertySheet:AddSheet( "Customization", self:CustomizationTab( container ), "icon16/user.png" )
-	propertySheet:AddSheet( "Help", self:HelpTab( container ), "icon16/help.png" )
 	propertySheet:AddSheet( "Settings", self:SettingsTab( container ), "icon16/wrench.png" )
+	propertySheet:AddSheet( "Help", self:HelpTab( container ), "icon16/help.png" )
 end
 
 vgui.Register("unityMenu", PANEL, "Panel")
