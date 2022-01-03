@@ -327,20 +327,24 @@ concommand.Add("unity_dropweapon", function( client )
 	end
 end)
 
-concommand.Add("unity_dropammo", function( client ) 
+concommand.Add("unity_dropammo", function( client, cmd, args ) 
     local weapon = client:GetActiveWeapon()
 
 	if ( IsValid( weapon ) and weapon:GetClass() != "weapon_frag" ) then
 		local ammoType = weapon:GetPrimaryAmmoType()
 		local ammoTypeName = string.lower(game.GetAmmoName( ammoType ) or "")
 		local ammoCount = client:GetAmmoCount( ammoType )
-		local dropAmount = weapon:GetMaxClip1()
+		local dropAmount = tonumber( args[1] )
+
+		if not dropAmount then
+			dropAmount = weapon:GetMaxClip1()
+		end
 
 		if ammoCount < dropAmount then
 			dropAmount = ammoCount
 		end
 
-		if ammoCount <= 0 then return end
+		if ammoCount <= 0 or dropAmount == 0 then return end
 
 		client:RemoveAmmo( dropAmount, ammoType )
 
