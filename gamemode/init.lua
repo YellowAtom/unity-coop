@@ -181,7 +181,7 @@ hook.Add("PlayerDeathThink", "PlayerDontSpawn", function( client )
 end)
 
 hook.Add("PlayerCanPickupWeapon", "unityWeaponPickupModifications", function( client, weapon )
-    if client:HasWeapon( weapon:GetClass() ) then
+    if weapon:GetClass() != "weapon_frag" or weapon:GetClass() != "weapon_slam" client:HasWeapon( weapon:GetClass() ) then
 		client:GiveAmmo(weapon:Clip1(), weapon:GetPrimaryAmmoType())
 		weapon:SetClip1( 0 )
 
@@ -234,7 +234,8 @@ local ammoItemTranslation = {
 	["357"] = "models/items/357ammo.mdl",
 	["xbowbolt"] = "models/items/crossbowrounds.mdl",
 	["grenade"] = "models/items/grenadeammo.mdl",
-	["rpg_round"] = "models/weapons/w_missile_closed.mdl"
+	["rpg_round"] = "models/weapons/w_missile_closed.mdl",
+	["slam"] = "models/weapons/w_slam.mdl"
 }
 
 hook.Add("DoPlayerDeath", "DeathDropWeapons", function(client)
@@ -260,7 +261,7 @@ hook.Add("DoPlayerDeath", "DeathDropAmmo", function(client)
 
 		entity:SetAmmoAmount( v )
 		entity:SetAmmoType( ammoTypeName )
-		entity:SetModel( ammoItemTranslation[ammoTypeName] )
+		entity:SetModel( ammoItemTranslation[ammoTypeName] or "models/items/boxmrounds.mdl" )
 
 		entity:SetPos( client:GetPos() + Vector(0, 0, 50) )
 		entity:SetAngles( client:GetAngles() )
@@ -285,7 +286,7 @@ hook.Add( "PlayerAmmoChanged", "AmmoCap", function( client, ammoID, oldCount, ne
 		
 		entity:SetAmmoAmount( dif )
 		entity:SetAmmoType( ammoTypeName )
-		entity:SetModel( ammoItemTranslation[ammoTypeName] )
+		entity:SetModel( ammoItemTranslation[ammoTypeName] or "models/items/boxmrounds.mdl" )
 
 		entity:SetPos( client:GetPos() + Vector(0, 0, 50) )
 		entity:SetAngles( client:GetAngles() )
@@ -380,7 +381,7 @@ concommand.Add("unity_dropammo", function( client, cmd, args )
 		
 		entity:SetAmmoAmount( dropAmount )
 		entity:SetAmmoType( ammoTypeName )
-		entity:SetModel( ammoItemTranslation[ammoTypeName] )
+		entity:SetModel( ammoItemTranslation[ammoTypeName] or "models/items/boxmrounds.mdl" )
 
 		client:DoAnimationEvent( ACT_GMOD_GESTURE_ITEM_DROP )
 
