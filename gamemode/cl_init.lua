@@ -12,7 +12,7 @@ CreateClientConVar("unity_vignette", "1", true, true, "Adds a vignette for atmos
 local vignette = Material("materials/gui/unityvignette.png")
 
 hook.Add( "HUDPaintBackground", "Vignette", function()
-	if GetConVar("unity_vignette"):GetInt() > 0 then
+	if cvars.Bool("unity_vignette", true) then
 		surface.SetDrawColor(0, 0, 0, 175)
 		surface.SetMaterial(vignette)
 		surface.DrawTexturedRect(0, 0, ScrW(), ScrH())

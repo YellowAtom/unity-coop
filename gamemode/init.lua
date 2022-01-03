@@ -103,12 +103,12 @@ function unity.SetPlayerSpectating( client )
 		end 
 	end)
 
-	if not ( GetConVar("unity_enablehardcore"):GetInt() > 0 ) then
+	if not cvars.Bool("unity_enablehardcore", false) then
 		GetConVar("unity_allowautorespawn"):SetInt( 1 )
 	end
 
-	if GetConVar("unity_allowautorespawn"):GetInt() > 0 then
-		timer.Create("UnityRespawnTimer", GetConVar("unity_autorespawntime"):GetInt(), 1, function()
+	if cvars.Bool("unity_allowautorespawn", true) then
+		timer.Create("UnityRespawnTimer", cvars.Number("unity_autorespawntime", 60), 1, function()
 			local alivePlayers = unity.GetAlivePlayers()
 			local target = alivePlayers[math.random(#alivePlayers)]
 
@@ -125,7 +125,7 @@ end
 // Hooks
 
 cvars.AddChangeCallback("unity_difficulty", function(convar, oldValue, newValue)
-	local difficulty = GetConVar(convar):GetInt()
+	local difficulty = cvars.Number(convar, 2)
 
 	if difficulty > 3 then
 		difficulty = 3
@@ -136,6 +136,12 @@ cvars.AddChangeCallback("unity_difficulty", function(convar, oldValue, newValue)
 	if SERVER then
 		RunConsoleCommand("skill", difficulty)
 		game.SetSkillLevel( difficulty )
+	end
+end)
+
+hook.Add("PlayerShouldTakeDamage", "PvPToggle", function(client, attacker)
+	if ( attacker:IsValid() and attacker:IsPlayer() and client != attacker ) then
+		return cvars.Bool( "unity_playershurtplayers", true )
 	end
 end)
 
@@ -158,20 +164,8 @@ hook.Add( "KeyPress", "SpectatingKeyPress", function( client, key )
 	end
 end)
 
-hook.Add("DoPlayerDeath", "DeathDropWeapons", function(client)
-	if not client:IsValid() then return end
-
-	for k, v in ipairs(client:GetWeapons()) do
-		if GetConVar("unity_givegravitygun"):GetInt() > 0 and v == "weapon_physcannon" then
-			continue
-		end
-
-		client:DropWeapon(v, nil, client:GetVelocity())
-	end
-end)
-
 hook.Add("PlayerDeath", "UnityGameOver", function()
-	if unity.CheckAllDead() and GetConVar("unity_enablehardcore"):GetInt() > 0 then
+	if unity.CheckAllDead() and cvars.Bool("unity_enablehardcore", false) then
 		unity.GameOver()
 	end
 end)
@@ -243,6 +237,39 @@ local ammoItemTranslation = {
 	["rpg_round"] = "models/weapons/w_missile_closed.mdl"
 }
 
+hook.Add("DoPlayerDeath", "DeathDropWeapons", function(client)
+	if not client:IsValid() then return end
+
+	for k, v in ipairs(client:GetWeapons()) do
+		if cvars.Bool("unity_givegravitygun", false) and v == "weapon_physcannon" then
+			continue
+		end
+
+		client:DropWeapon(v, nil, client:GetVelocity())
+	end
+end)
+
+hook.Add("DoPlayerDeath", "DeathDropAmmo", function(client)
+	if not client:IsValid() then return end
+
+	for k, v in pairs(client:GetAmmo()) do
+		local ammoTypeName = string.lower(game.GetAmmoName(k) or "")
+
+		local entity = ents.Create( "unity_ammo" )
+		if !IsValid( entity ) then return end
+
+		entity:SetAmmoAmount( v )
+		entity:SetAmmoType( ammoTypeName )
+		entity:SetModel( ammoItemTranslation[ammoTypeName] )
+
+		entity:SetPos( client:GetPos() + Vector(0, 0, 50) )
+		entity:SetAngles( client:GetAngles() )
+		entity:Spawn()
+
+		client:SetAmmo(0, ammoTypeName)
+	end
+end)
+
 hook.Add( "PlayerAmmoChanged", "AmmoCap", function( client, ammoID, oldCount, newCount )
 	local ammoCap = game.GetAmmoMax(ammoID)
 	local ammoTypeName = string.lower(game.GetAmmoName(ammoID) or "")
@@ -296,7 +323,7 @@ concommand.Add("unity_dropweapon", function( client )
 	if ( IsValid( weapon ) ) then
 		local weaponClass = weapon:GetClass()
 
-		if GetConVar("unity_givegravitygun"):GetInt() > 0 and weaponClass == "weapon_physcannon" then
+		if cvars.Bool("unity_givegravitygun", false) and weaponClass == "weapon_physcannon" then
 			return
 		end
 

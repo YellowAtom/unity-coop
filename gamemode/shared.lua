@@ -6,7 +6,7 @@ unity = unity or {}
 
 function GM:Initialize()
 	if SERVER then
-		local difficulty = GetConVar("unity_difficulty"):GetInt()
+		local difficulty = cvars.Number("unity_difficulty", 2)
 
 		if difficulty > 3 then
 			difficulty = 3
@@ -75,7 +75,7 @@ function GM:PlayerLoadout(client)
 	client:SetCollisionGroup( 15 )
 	client:AllowFlashlight( true )
 
-	if ( GetConVar("unity_givegravitygun"):GetInt() > 0 ) then
+	if cvars.Bool("unity_givegravitygun", false) then
 		client:Give("weapon_physcannon")
 	end
 
@@ -211,7 +211,7 @@ hook.Add("PlayerSay", "UnityCommandSay", function( sender, text, teamChat)
 		if unity.command.list[commandName] then
 			local command = unity.command.list[commandName]
 
-			if command.onCanRun( sender, arguments ) and GetConVar("unity_allowcommands"):GetInt() > 0 then 
+			if command.onCanRun( sender, arguments ) and cvars.Bool("unity_allowcommands", true) then 
 				command.onRun( sender, arguments ) 
 			else
 				sender:Notify( "You cannot use this command!" )

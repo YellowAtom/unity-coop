@@ -17,6 +17,7 @@
 			"default"	"2"
 			"singleplayer"	"1"
 		}
+
 		2
 		{
 			"name"		"unity_enablehardcore"
@@ -26,6 +27,7 @@
 			"default"	"0"
 			"singleplayer"	"1"
 		}
+
 		3
 		{
 			"name"		"unity_allowautorespawn"
@@ -35,7 +37,17 @@
 			"default"	"1"
 			"singleplayer"	"1"
 		}
+
 		4
+		{
+			"name"		"unity_playershurtplayers"
+			"text"		"Enable PvP"
+			"help"		"If enabled, players will be able to hurt each other"
+			"type"		"CheckBox"
+			"default"	"1"
+		}
+
+		5
 		{
 			"name"		"unity_autorespawntime"
 			"text"		"Respawn Waiting Time"
@@ -44,7 +56,8 @@
 			"default"	"60"
 			"singleplayer"	"1"
 		}
-		5
+
+		6
 		{
 			"name"		"unity_allowcommands"
 			"text"		"Enable Commands"
@@ -53,7 +66,8 @@
 			"default"	"1"
 			"singleplayer"	"1"
 		}
-		6
+
+		7
 		{
 			"name"		"unity_allowcustommodels"
 			"text"		"Enable Custom Models"
@@ -62,7 +76,8 @@
 			"default"	"1"
 			"singleplayer"	"1"
 		}
-		7
+
+		8
 		{
 			"name"		"unity_givegravitygun"
 			"text"		"Give Gravity Gun"
@@ -71,7 +86,8 @@
 			"default"	"0"
 			"singleplayer"	"1"
 		}
-		8
+
+		9
 		{
 			"name"		"gmod_suit"
 			"text"		"Enable HEV Suit"

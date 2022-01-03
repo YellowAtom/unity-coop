@@ -36,7 +36,7 @@ function PANEL:CustomizationTab( parent )
 
 	local playerModels = unity.defaultPlayerModels
 
-	if GetConVar("unity_allowcustommodels"):GetInt() > 0 then
+	if cvars.Bool("unity_allowcustommodels", false) then
 		playerModels = player_manager.AllValidModels()
 	end
 
@@ -195,6 +195,7 @@ function PANEL:SettingsTab( parent )
 		["unity_allowautorespawn"] = "Enable Respawning",
 		["unity_givegravitygun"] = "Give Gravity Gun",
 		["unity_enablehardcore"] = "Enable Hardcore",
+		["unity_playershurtplayers"] = "Enable PvP",
 		["gmod_suit"] = "Enable HEV Suit"
 	}
 
@@ -350,7 +351,7 @@ All weapons have the same ammo caps as Half-Life 2.]])
 		control:Dock( TOP )
 	end
 
-	if GetConVar("unity_allowcommands"):GetInt() > 0 then
+	if cvars.Bool("unity_allowcommands", true) then
 		local commandsHeader = vgui.Create( "DLabel", container )
 		commandsHeader:SetText( "Commands" )
 		commandsHeader:SetColor(Color(0, 0, 0))
@@ -383,7 +384,7 @@ All weapons have the same ammo caps as Half-Life 2.]])
 	}
 
 	local gamemodeDetails = vgui.Create( "DLabel", container )
-	gamemodeDetails:SetText( string.format("Difficulty: %s %s\nVersion: %s\nGamemode by %s", difficultyTranslation[game.GetSkillLevel()], (GetConVar("unity_enablehardcore"):GetInt() > 0) and "(Hardcore)" or "" , GM.Version, GM.Author) )
+	gamemodeDetails:SetText( string.format("Difficulty: %s %s\nVersion: %s\nGamemode by %s", difficultyTranslation[game.GetSkillLevel()], cvars.Bool("unity_enablehardcore", false) and "(Hardcore)" or "" , GM.Version, GM.Author) )
 	gamemodeDetails:SetColor( Color(0, 0, 0) )
 	gamemodeDetails:SetAutoStretchVertical( true )
 	gamemodeDetails:SetFont("Default")
