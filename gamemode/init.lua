@@ -187,20 +187,47 @@ hook.Add("PlayerDeathThink", "PlayerDontSpawn", function( client )
 end)
 
 hook.Add("PlayerCanPickupWeapon", "unityWeaponPickupModifications", function( client, weapon )
-    if ( client:HasWeapon( weapon:GetClass() ) ) then
+    if client:HasWeapon( weapon:GetClass() ) then
 		client:GiveAmmo(weapon:Clip1(), weapon:GetPrimaryAmmoType())
 		weapon:SetClip1( 0 )
 
 		return false
 	end
 
-	if (client.unityWeaponPickupDelay) then
-		return false
-	end
+	if (client.unityWeaponPickupDelay) then return false end
 end)
 
+local ammoEntityTranslation = {
+	["item_ammo_pistol"] = "weapon_pistol",
+	["item_ammo_smg1"] = "weapon_smg1",
+	["item_box_buckshot"] = "weapon_shotgun",
+	["item_ammo_ar2"] = "weapon_ar2",
+	["item_ammo_357"] = "weapon_357",
+	["item_ammo_crossbow"] = "weapon_crossbow",
+	["item_rpg_round"] = "weapon_rpg"
+}
+
+local ammoTypeTranslation = {
+	["pistol"] = "weapon_pistol",
+	["smg1"] = "weapon_smg1",
+	["buckshot"] = "weapon_shotgun",
+	["ar2"] = "weapon_ar2",
+	["357"] = "weapon_357",
+	["xbowbolt"] = "weapon_crossbow",
+	["rpg_round"] = "weapon_rpg"
+}
+
 hook.Add("PlayerCanPickupItem", "unityItemPickupModifications", function( client, entity )
-	if (client.unityItemPickupDelay) then
+	if (client.unityItemPickupDelay) then return false end
+
+	local entClass = entity:GetClass()
+	local weaponClass = ammoEntityTranslation[entClass]
+
+	if entClass == "unity_ammo" then
+		weaponClass = ammoTypeTranslation[entity:GetAmmoType()]
+	end
+
+	if weaponClass and not client:HasWeapon( weaponClass ) then
 		return false
 	end
 end)
@@ -210,8 +237,8 @@ local ammoItemTranslation = {
 	["smg1"] = "models/items/boxmrounds.mdl",
 	["buckshot"] = "models/items/boxbuckshot.mdl",
 	["ar2"] = "models/items/combine_rifle_cartridge01.mdl",
-	["xbowbolt"] = "models/items/crossbowrounds.mdl",
 	["357"] = "models/items/357ammo.mdl",
+	["xbowbolt"] = "models/items/crossbowrounds.mdl",
 	["grenade"] = "models/items/grenadeammo.mdl",
 	["rpg_round"] = "models/weapons/w_missile_closed.mdl"
 }
