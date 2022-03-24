@@ -4,21 +4,6 @@ GM.Version = "β"
 
 unity = unity or {}
 
-function GM:Initialize()
-	if SERVER then
-		local difficulty = cvars.Number("unity_difficulty", 2)
-
-		if difficulty > 3 then
-			difficulty = 3
-		elseif difficulty < 1 then
-			difficulty = 1
-		end
-
-		RunConsoleCommand("skill", difficulty)
-		game.SetSkillLevel( difficulty )
-	end
-end
-
 unity.defaultPlayerModels = {
 	"models/player/group03/male_01.mdl",
 	"models/player/group03/male_02.mdl",
@@ -55,10 +40,20 @@ unity.defaultPlayerModels = {
 	"models/player/group03m/female_06.mdl"
 }
 
+function GM:Initialize()
+	if SERVER then
+		local difficulty = cvars.Number("unity_difficulty", 2)
+
+		math.Clamp( difficulty, 1, 3 )
+
+		RunConsoleCommand("skill", difficulty)
+		game.SetSkillLevel( difficulty )
+	end
+end
+
 function GM:PlayerSetModel(client)
 	if client:IsBot() then
 		client:SetModel(unity.defaultPlayerModels[math.random(#unity.defaultPlayerModels)])
-
 		return
 	end
 
@@ -68,27 +63,30 @@ function GM:PlayerSetModel(client)
 end
 
 function GM:PlayerLoadout(client)
-	client:SetWalkSpeed( 190 )
-	client:SetRunSpeed( 320 )
-	client:SetCrouchedWalkSpeed( 0.3333 )
+	// Sets all the HL2 movement values.
+	client:SetSlowWalkSpeed( 150 ) // Walk Speed
+	client:SetWalkSpeed( 190 ) // Norm Speed
+	client:SetRunSpeed( 320 ) // Sprint Speed
+	client:SetCrouchedWalkSpeed( 0.33333333 ) // Crouch Modifier from Norm Speed
 
-	client:SetCollisionGroup( 15 )
+	// Have to enable flashlight in base gamemode.
 	client:AllowFlashlight( true )
+
+	// This makes players non-solid only to each other.
+	client:SetCollisionGroup( COLLISION_GROUP_PASSABLE_DOOR )
 
 	if cvars.Bool("unity_givegravitygun", false) then
 		client:Give("weapon_physcannon")
 	end
-
-	client:SetMoveType( MOVETYPE_WALK ) 
 end
 
-function unity.Announce( text )
+local playerMeta = FindMetaTable("Player")
+
+function unity:Announce( text )
 	for _, v in ipairs(player.GetAll()) do
 		v:ChatPrint( text )
 	end
 end
-
-local playerMeta = FindMetaTable("Player")
 
 function playerMeta:Notify( text )
 	self:ChatPrint( text )
@@ -99,7 +97,7 @@ function GM:DrawDeathNotice( x, y )
 end
 
 function GM:GetFallDamage(client, fallSpeed)
-	return ( fallSpeed - 526.5 ) * ( 100 / 396 ) -- the Source SDK value
+	return ( fallSpeed - 526.5 ) * ( 100 / 396 ) // The Source SDK value.
 end
 
 function GM:PlayerNoClip(client, desiredNoClipState)
@@ -143,43 +141,17 @@ hook.Add("PlayerDeath", "UnityDeathSounds", function(client)
 end)
 
 hook.Add("PlayerDeath", "UnityDeathAlert", function(client)
-	unity.Announce( client:GetName() .. " has died!")
+	unity:Announce( client:GetName() .. " has died!" )
 end)
 
-hook.Add( "IsSpawnpointSuitable", "CheckSpawnPoint", function( client, spawnpointent, bMakeSuitable )
-	local pos = spawnpointent:GetPos()
-
-	-- Note that we're searching the default hull size here for a player in the way of our spawning.
-	-- This seems pretty rough, seeing as our player's hull could be different.. but it should do the job.
-	-- (HL2DM kills everything within a 128 unit radius)
-	local entities = ents.FindInBox( pos + Vector( -16, -16, 0 ), pos + Vector( 16, 16, 72 ) )
-
-	if ( client:Team() == TEAM_SPECTATOR or client:Team() == TEAM_UNASSIGNED ) then return true end
-
-	local blockers = 0
-
-	for _, v in ipairs( entities ) do
-		if ( v:IsPlayer() and v:Alive() ) then
-			blockers = blockers + 1
-
-			if ( bMakeSuitable ) then
-				v:Kill()
-			end
-		end
-	end
-
-	if ( bMakeSuitable ) then return true end
-	if ( blockers > 0 ) then return false end
-
-	return true
-end)
+// Gamemode Controls
 
 function GM:ShowHelp(client)
 	client:ConCommand("unity_menu")
 end
 
 function GM:ShowTeam(client)
-	--For future use.
+	// For future use.
 end
 
 function GM:ShowSpare1(client)
@@ -226,11 +198,11 @@ hook.Add("PlayerSay", "UnityCommandSay", function( sender, text, teamChat)
 	end
 end)
 
-function unity.command.Add( name, data )
+function unity.command:Add( name, data )
 	unity.command.list[name] = data
 end
 
-unity.command.Add("bring", {
+unity.command:Add("bring", {
 	description = "Brings the entered player to your location.",
 	onCanRun = function( client )
 		return true
@@ -240,7 +212,7 @@ unity.command.Add("bring", {
 			if target:IsPlayer() and target:Alive() and target:GetName() == arguments[1] then
 				target:SetPos(client:GetPos())
 
-				unity.Announce(string.format("%s has brought %s to their location.", client:GetName(), target:GetName()))
+				unity:Announce(string.format("%s has brought %s to their location.", client:GetName(), target:GetName()))
 				return
 			end
 		end
@@ -249,7 +221,7 @@ unity.command.Add("bring", {
 	end
 })
  
-unity.command.Add("bringall", {
+unity.command:Add("bringall", {
 	description = "Brings all players to your location.",
 	onCanRun = function ( client )
 		return true
@@ -264,6 +236,6 @@ unity.command.Add("bringall", {
 			end
 		end
 
-		unity.Announce(string.format("%s has brought all players to their location.", client:GetName()))
+		unity:Announce(string.format("%s has brought all players to their location.", client:GetName()))
 	end
 })

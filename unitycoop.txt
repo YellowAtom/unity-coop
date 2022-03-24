@@ -17,7 +17,6 @@
 			"default"	"2"
 			"singleplayer"	"1"
 		}
-
 		2
 		{
 			"name"		"unity_enablehardcore"
@@ -27,18 +26,7 @@
 			"default"	"0"
 			"singleplayer"	"1"
 		}
-
 		3
-		{
-			"name"		"unity_allowautorespawn"
-			"text"		"Enable Respawning"
-			"help"		"Turns on automatically respawning after a set amount of time."
-			"type"		"CheckBox"
-			"default"	"1"
-			"singleplayer"	"1"
-		}
-
-		4
 		{
 			"name"		"unity_playershurtplayers"
 			"text"		"Enable PvP"
@@ -46,7 +34,16 @@
 			"type"		"CheckBox"
 			"default"	"1"
 		}
-
+		4
+		{
+			"name"		"gmod_suit"
+			"text"		"Enable HEV Suit"
+			"help"		"Set to non zero to enable Half-Life 2 aux suit power stuff."
+			"type"		"CheckBox"
+			"default"	"0"
+			"singleplayer"	"1"
+			"dontcreate"	"1"
+		}
 		5
 		{
 			"name"		"unity_autorespawntime"
@@ -56,17 +53,15 @@
 			"default"	"60"
 			"singleplayer"	"1"
 		}
-
 		6
 		{
 			"name"		"unity_allowcommands"
-			"text"		"Enable Commands"
+			"text"		"Enable Chat Commands"
 			"help"		"Enables the chat commands system such as /bringall."
 			"type"		"CheckBox"
 			"default"	"1"
 			"singleplayer"	"1"
 		}
-
 		7
 		{
 			"name"		"unity_allowcustommodels"
@@ -76,7 +71,6 @@
 			"default"	"1"
 			"singleplayer"	"1"
 		}
-
 		8
 		{
 			"name"		"unity_givegravitygun"
@@ -85,17 +79,6 @@
 			"type"		"CheckBox"
 			"default"	"0"
 			"singleplayer"	"1"
-		}
-
-		9
-		{
-			"name"		"gmod_suit"
-			"text"		"Enable HEV Suit"
-			"help"		"Set to non zero to enable Half-Life 2 aux suit power stuff."
-			"type"		"CheckBox"
-			"default"	"0"
-			"singleplayer"	"1"
-			"dontcreate"	"1"
 		}
 	}
 }

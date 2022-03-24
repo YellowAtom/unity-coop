@@ -7,34 +7,38 @@ AddCSLuaFile("derma/cl_menu.lua")
 include("shared.lua")
 
 resource.AddFile("materials/icon16/unitylogo.png")
-resource.AddFile("materials/gui/unityvignette.png")
 
 unity = unity or {}
 
-function unity.GameOver()
+function unity:GameOver()
 	unity.gameending = true
 
+	// Clean up players for next game.
 	for k, v in ipairs(player.GetAll()) do
-		v:ScreenFade(SCREENFADE.OUT, color_black, 6, 2) 
-		v:ConCommand("play music/stingers/industrial_suspense".. math.random(1, 2) .. ".wav")
-		v:StripAmmo()
+		v:ScreenFade( SCREENFADE.OUT, color_black, 6, 2 ) 
+		v:ConCommand( "play music/stingers/industrial_suspense".. math.random(1, 2) .. ".wav" )
 		v:StripWeapons()
+		v:StripAmmo()
+
+		if timer.Exists("UnityRespawnTimer_" .. v:SteamID64()) then
+			timer.Remove("UnityRespawnTimer_" .. v:SteamID64())
+		end
 	end
 
-	timer.Simple( 1, function()
-		timer.Remove("UnityRespawnTimer")
-	end)
-
+	// Wait for the screenfade to finish before cleaning up the map and stats.
 	timer.Simple( 8, function() 
 		game.CleanUpMap( false, {} ) 
 
 		timer.Simple( 0.2, function() 
 			for k, v in ipairs(player.GetAll()) do
-				v:SetDeaths(0)
-				v:SetFrags(0)
-
 				v:UnSpectate()
 				v:Spawn()
+
+				// Maybe scoreboard shouldn't reset on failure, unsure.
+				// We pause before resetting it so players can check it while
+				// waiting for the level to reset.
+				v:SetDeaths(0)
+				v:SetFrags(0)
 			end 
 
 			unity.gameending = nil
@@ -42,24 +46,18 @@ function unity.GameOver()
 	end)
 end
 
-function unity.CheckAllDead()
-	local deadplayers = 0
-	local allPlayers = player.GetAll()
-
-	for k, v in ipairs(allPlayers) do
-		if (v:IsValid() and !v:Alive()) then
-			deadplayers = deadplayers + 1 
+function unity:CheckAllDead()
+	// If a single player returns alive, not all of them are dead.
+	for k, v in ipairs(player.GetAll()) do
+		if (v:IsValid() and v:Alive()) then
+			return false;
 		end
 	end
 
-	if (#allPlayers == deadplayers) then
-		return true
-	end
-
-	return false
+	return true;
 end
 
-function unity.GetAlivePlayers()
+function unity:GetAlivePlayers()
 	local alivePlayers = {}
 
 	for k, v in ipairs(player.GetAll()) do
@@ -71,8 +69,8 @@ function unity.GetAlivePlayers()
 	return alivePlayers
 end
 
-function unity.GetNextAlivePlayer(client)
-	local alivePlayers = unity.GetAlivePlayers()
+function unity:GetNextAlivePlayer(client)
+	local alivePlayers = unity:GetAlivePlayers()
 
 	if #alivePlayers < 1 then return nil end
 
@@ -96,30 +94,24 @@ function unity.GetNextAlivePlayer(client)
 	return choice
 end
 
-function unity.SetPlayerSpectating( client )
+function unity:SetPlayerSpectating( client )
 	timer.Simple(0.5, function() 
 		if(client:IsValid()) then 
 			client:Spectate( OBS_MODE_ROAMING ) 
 		end 
 	end)
 
-	if not cvars.Bool("unity_enablehardcore", false) then
-		GetConVar("unity_allowautorespawn"):SetInt( 1 )
-	end
+	timer.Create("UnityRespawnTimer_" .. client:SteamID64(), cvars.Number("unity_autorespawntime", 60), 1, function()
+		local alivePlayers = unity:GetAlivePlayers()
+		local target = unity:GetAlivePlayers()[math.random(#alivePlayers)]
 
-	if cvars.Bool("unity_allowautorespawn", true) then
-		timer.Create("UnityRespawnTimer", cvars.Number("unity_autorespawntime", 60), 1, function()
-			local alivePlayers = unity.GetAlivePlayers()
-			local target = alivePlayers[math.random(#alivePlayers)]
+		client:UnSpectate()
+		client:Spawn()
 
-			client:UnSpectate()
-			client:Spawn()
-
-			if( target and target:IsPlayer() and target:Alive()) then
-				client:SetPos(target:GetPos())
-			end
-		end)
-	end
+		if( target and target:Alive()) then
+			client:SetPos(target:GetPos())
+		end
+	end)
 end
 
 // Hooks
@@ -127,11 +119,7 @@ end
 cvars.AddChangeCallback("unity_difficulty", function(convar, oldValue, newValue)
 	local difficulty = cvars.Number(convar, 2)
 
-	if difficulty > 3 then
-		difficulty = 3
-	elseif difficulty < 1 then
-		difficulty = 1
-	end
+	math.Clamp( difficulty, 1, 3 )
 
 	if SERVER then
 		RunConsoleCommand("skill", difficulty)
@@ -139,16 +127,16 @@ cvars.AddChangeCallback("unity_difficulty", function(convar, oldValue, newValue)
 	end
 end)
 
-hook.Add("PlayerShouldTakeDamage", "PvPToggle", function(client, attacker)
+hook.Add("PlayerShouldTakeDamage", "UnityPVPEnabled", function(client, attacker)
 	if ( attacker:IsValid() and attacker:IsPlayer() and client != attacker ) then
 		return cvars.Bool( "unity_playershurtplayers", true )
 	end
 end)
 
-hook.Add( "KeyPress", "SpectatingKeyPress", function( client, key )
+hook.Add( "KeyPress", "UnitySpectatingControls", function( client, key )
 	if( key == IN_ATTACK ) then
 		if(!client:Alive() and client:GetMoveType() == MOVETYPE_OBSERVER) then
-			local target = unity.GetNextAlivePlayer(client:GetObserverTarget())
+			local target = unity:GetNextAlivePlayer( client:GetObserverTarget() )
 
 			if not target then return end
 
@@ -165,31 +153,35 @@ hook.Add( "KeyPress", "SpectatingKeyPress", function( client, key )
 end)
 
 hook.Add("PlayerDeath", "UnityGameOver", function()
-	if unity.CheckAllDead() and cvars.Bool("unity_enablehardcore", false) then
-		unity.GameOver()
+	if unity:CheckAllDead() and cvars.Bool("unity_enablehardcore", false) then
+		unity:GameOver()
 	end
 end)
 
 hook.Add("PlayerDeath", "UnitySpectating", function(client) 
 	if not (unity.gameending) then
-		unity.SetPlayerSpectating( client )
+		unity:SetPlayerSpectating( client )
 	end
 end)
 
-hook.Add("PlayerDeathThink", "PlayerDontSpawn", function( client )
+// Disables clicking to respawn on death.
+hook.Add("PlayerDeathThink", "UnityDisableDefaultRespawn", function( client )
 	return false
 end)
 
-hook.Add("PlayerCanPickupWeapon", "unityWeaponPickupModifications", function( client, weapon )
-    if weapon:GetClass() != "weapon_frag" or weapon:GetClass() != "weapon_slam" client:HasWeapon( weapon:GetClass() ) then
+hook.Add("PlayerCanPickupWeapon", "UnityWeaponPickupModifications", function( client, weapon )
+	if (client.unityWeaponPickupDelay) then return false end
+
+	// This would break grenade type weapons without the catch.
+    if client:HasWeapon( weapon:GetClass() ) and weapon:GetClass() != "weapon_frag" and weapon:GetClass() != "weapon_slam" then
 		client:GiveAmmo(weapon:Clip1(), weapon:GetPrimaryAmmoType())
 		weapon:SetClip1( 0 )
 
 		return false
 	end
-
-	if (client.unityWeaponPickupDelay) then return false end
 end)
+
+// TODO: Allow users to insert into these tables for custom ammo type support.
 
 local ammoEntityTranslation = {
 	["item_ammo_pistol"] = "weapon_pistol",
@@ -211,6 +203,18 @@ local ammoTypeTranslation = {
 	["rpg_round"] = "weapon_rpg"
 }
 
+local ammoModelTranslation = {
+	["pistol"] = "models/items/boxsrounds.mdl",
+	["smg1"] = "models/items/boxmrounds.mdl",
+	["buckshot"] = "models/items/boxbuckshot.mdl",
+	["ar2"] = "models/items/combine_rifle_cartridge01.mdl",
+	["357"] = "models/items/357ammo.mdl",
+	["xbowbolt"] = "models/items/crossbowrounds.mdl",
+	["grenade"] = "models/items/grenadeammo.mdl",
+	["rpg_round"] = "models/weapons/w_missile_closed.mdl",
+	["slam"] = "models/weapons/w_slam.mdl"
+}
+
 hook.Add("PlayerCanPickupItem", "unityItemPickupModifications", function( client, entity )
 	if (client.unityItemPickupDelay) then return false end
 
@@ -226,33 +230,21 @@ hook.Add("PlayerCanPickupItem", "unityItemPickupModifications", function( client
 	end
 end)
 
-local ammoItemTranslation = {
-	["pistol"] = "models/items/boxsrounds.mdl",
-	["smg1"] = "models/items/boxmrounds.mdl",
-	["buckshot"] = "models/items/boxbuckshot.mdl",
-	["ar2"] = "models/items/combine_rifle_cartridge01.mdl",
-	["357"] = "models/items/357ammo.mdl",
-	["xbowbolt"] = "models/items/crossbowrounds.mdl",
-	["grenade"] = "models/items/grenadeammo.mdl",
-	["rpg_round"] = "models/weapons/w_missile_closed.mdl",
-	["slam"] = "models/weapons/w_slam.mdl"
-}
-
-hook.Add("DoPlayerDeath", "DeathDropWeapons", function(client)
+hook.Add("DoPlayerDeath", "DeathDropEquipment", function(client)
 	if not client:IsValid() then return end
 
+	// Drop Weapons
 	for k, v in ipairs(client:GetWeapons()) do
+
+		// Don't drop the gravity gun if we gave it for free!
 		if cvars.Bool("unity_givegravitygun", false) and v == "weapon_physcannon" then
 			continue
 		end
 
 		client:DropWeapon(v, nil, client:GetVelocity())
 	end
-end)
 
-hook.Add("DoPlayerDeath", "DeathDropAmmo", function(client)
-	if not client:IsValid() then return end
-
+	// Drop Ammo
 	for k, v in pairs(client:GetAmmo()) do
 		local ammoTypeName = string.lower(game.GetAmmoName(k) or "")
 
@@ -261,7 +253,7 @@ hook.Add("DoPlayerDeath", "DeathDropAmmo", function(client)
 
 		entity:SetAmmoAmount( v )
 		entity:SetAmmoType( ammoTypeName )
-		entity:SetModel( ammoItemTranslation[ammoTypeName] or "models/items/boxmrounds.mdl" )
+		entity:SetModel( ammoModelTranslation[ammoTypeName] or "models/items/boxmrounds.mdl" )
 
 		entity:SetPos( client:GetPos() + Vector(0, 0, 50) )
 		entity:SetAngles( client:GetAngles() )
@@ -282,11 +274,11 @@ hook.Add( "PlayerAmmoChanged", "AmmoCap", function( client, ammoID, oldCount, ne
 		local entity = ents.Create( "unity_ammo" )
 		if !IsValid( entity ) then return end
 
-		client:DoAnimationEvent( ACT_GMOD_GESTURE_ITEM_DROP )
+		client:DoAnimationEvent( ACT_GMOD_GESTURE_ITEM_DROP ) // ehhhh
 		
 		entity:SetAmmoAmount( dif )
 		entity:SetAmmoType( ammoTypeName )
-		entity:SetModel( ammoItemTranslation[ammoTypeName] or "models/items/boxmrounds.mdl" )
+		entity:SetModel( ammoModelTranslation[ammoTypeName] or "models/items/boxmrounds.mdl" )
 
 		entity:SetPos( client:GetPos() + Vector(0, 0, 50) )
 		entity:SetAngles( client:GetAngles() )
@@ -303,18 +295,12 @@ end)
 
 // Console Commands
 
-concommand.Add("unity_setplayermodel", function( client, cmd, args, argStr )
+// So you don't have to suicide for model updates. 
+concommand.Add("unity_updatemodel", function( client, cmd, args, argStr )
     if IsValid(client) then
-		client:SetModel( argStr )
-		client:ConCommand( "unity_playermodel " .. argStr )
+		client:SetModel( client:GetInfo("unity_playermodel") )
+		client:SetPlayerColor( Vector(client:GetInfo("unity_playercolor")) )
 		client:SetupHands()
-	end
-end)
-
-concommand.Add("unity_setplayercolor", function( client, cmd, args, argStr )
-    if IsValid(client) then
-		client:SetPlayerColor( Vector(argStr) )
-		client:ConCommand( "unity_playercolor " .. argStr )
 	end
 end)
 
@@ -381,7 +367,7 @@ concommand.Add("unity_dropammo", function( client, cmd, args )
 		
 		entity:SetAmmoAmount( dropAmount )
 		entity:SetAmmoType( ammoTypeName )
-		entity:SetModel( ammoItemTranslation[ammoTypeName] or "models/items/boxmrounds.mdl" )
+		entity:SetModel( ammoModelTranslation[ammoTypeName] or "models/items/boxmrounds.mdl" )
 
 		client:DoAnimationEvent( ACT_GMOD_GESTURE_ITEM_DROP )
 

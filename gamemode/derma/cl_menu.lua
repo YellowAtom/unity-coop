@@ -12,7 +12,7 @@ function PANEL:CustomizationTab( parent )
 	self.modelPanel:SetSize( 200, 400 )
 	self.modelPanel:Dock( RIGHT )
 	self.modelPanel:SetFOV( 30 )
-	self.modelPanel:SetModel( client:GetModel() )
+	self.modelPanel:SetModel( client:GetInfo("unity_playermodel") )
 
 	function self.modelPanel:LayoutEntity( entity )
 		entity:SetSequence(entity:LookupSequence("menu_walk"))
@@ -23,14 +23,14 @@ function PANEL:CustomizationTab( parent )
 	end
 
 	function self.modelPanel.Entity:GetPlayerColor()
-		return client:GetPlayerColor()
+		return Vector( GetConVarString( "unity_playercolor" ) )
 	end
 
 	local IconScrollPanel = vgui.Create( "DScrollPanel", container )
 	IconScrollPanel:Dock( FILL )
 
 	local ListPanel = IconScrollPanel:Add( "DIconLayout" )
-	ListPanel:Dock( FILL  )
+	ListPanel:Dock( FILL )
 	ListPanel:SetSpaceY( 2 )
 	ListPanel:SetSpaceX( 2 )
 
@@ -46,19 +46,30 @@ function PANEL:CustomizationTab( parent )
 		ListItem:SetSize( 65, 65 )
 		ListItem:SetModel( v )
 		ListItem.OnMousePressed = function()
-			client:ConCommand("unity_setplayermodel " .. v)
-
+			client:ConCommand("unity_playermodel " .. v)
 			self.modelPanel:SetModel( v )
 
-			function panel.modelPanel.Entity:GetPlayerColor()
-				return client:GetPlayerColor()
+			function self.modelPanel.Entity:GetPlayerColor()
+				return Vector( GetConVarString( "unity_playercolor" ) )
 			end
 		end
+	end
+
+	local applyButton = vgui.Create( "DButton", container)
+	applyButton:SetText( "Update Model" )
+	applyButton:SetIcon( "icon16/tick.png" )
+	applyButton:SetTooltip( "Changes you've made are already saved, click this to apply them before next death." )
+	applyButton:Dock( BOTTOM )
+	applyButton:DockMargin(3, 3, 400, 3)
+
+	function applyButton:DoClick()
+		LocalPlayer():ConCommand("unity_updatemodel")
 	end
 
 	local colorButton = vgui.Create( "DButton", container)
 	colorButton:SetText( "Colour Editor" )
 	colorButton:SetIcon( "icon16/color_wheel.png" )
+	colorButton:SetTooltip( "Opens the colour editor for your player colour." )
 	colorButton:Dock( BOTTOM )
 	colorButton:DockMargin(3, 3, 400, 3)
 
@@ -72,115 +83,24 @@ end
 function PANEL:ColorEditor( parent, panel )
 	local container = vgui.Create( "DFrame", parent )
 	container:SetSize( 250, 200 )
-	local x, y = parent:GetPos()
-	container:SetPos( x - 280, y )
+	local parentX, parentY = parent:GetPos()
+	container:SetPos( parentX - 280, parentY )
 	container:SetTitle( "Model Colour Editor" )
 	container:SetIcon("icon16/color_wheel.png")
 	container:SetDraggable( true )
 	container:ShowCloseButton( true )
 	container:MakePopup()
 
-	local colorPicker = vgui.Create("DRGBPicker", container)
-	colorPicker:Dock( LEFT )
-	colorPicker:SetSize(30, 190)
+	local playerColorMixer = vgui.Create("DColorMixer", container)
+	playerColorMixer:Dock( FILL )
+	playerColorMixer:DockMargin(0, 0, 0, 0)
+	playerColorMixer:SetAlphaBar( false )
+	playerColorMixer:SetPalette( false )
 
-	local colorCube = vgui.Create("DColorCube", container)
-	colorCube:Dock( LEFT )
-	colorCube:DockMargin(5, 0, 0, 0)
-	colorCube:SetSize(155, 155)
+	playerColorMixer:SetVector( Vector( GetConVarString( "unity_playercolor" ) ) )
 
-	local wangR = container:Add( "DNumberWang" )
-	wangR:Dock( TOP )
-	wangR:DockMargin(5, 0, 0, 3)
-	wangR:SetMin( 0 )
-	wangR:SetMax( 255 )
-	wangR:SetDecimals( 0 )
-	wangR:SetTextColor( Color(155, 0, 0) )
-	wangR:HideWang()
-	
-	function wangR:OnValueChanged( val )
-		local color = colorCube:GetRGB()
-		color.r = val
-
-		colorPicker:SetRGB( color )
-		colorCube:SetColor( color )
-	end
-
-	local wangG = container:Add( "DNumberWang" )
-	wangG:Dock( TOP )
-	wangG:DockMargin(5, 0, 0, 3)
-	wangG:SetMin( 0 )
-	wangG:SetMax( 255 )
-	wangG:SetDecimals( 0 )
-	wangG:SetTextColor( Color(0, 155, 0) )
-	wangG:HideWang()
-
-	function wangG:OnValueChanged( val )
-		local color = colorCube:GetRGB()
-		color.g = val
-
-		colorPicker:SetRGB( color )
-		colorCube:SetColor( color )
-	end
-
-	local wangB = container:Add( "DNumberWang" )
-	wangB:Dock( TOP )
-	wangB:DockMargin(5, 0, 0, 3)
-	wangB:SetMin( 0 )
-	wangB:SetMax( 255 )
-	wangB:SetDecimals( 0 )
-	wangB:SetTextColor( Color(0, 0, 155) )
-	wangB:HideWang()
-
-	function wangB:OnValueChanged( val )
-		local color = colorCube:GetRGB()
-		color.b = val
-
-		colorPicker:SetRGB( color )
-		colorCube:SetColor( color )
-	end
-
-	local color = LocalPlayer():GetPlayerColor():ToColor()
-
-	wangR:SetValue( color.r )
-	wangG:SetValue( color.g )
-	wangB:SetValue( color.b )
-
-	colorPicker:SetRGB( color )
-	colorCube:SetColor( color )
-
-	function colorPicker:OnChange( color )
-		local h = ColorToHSV(color)
-		local _, s, v = ColorToHSV(colorCube:GetRGB())
-		
-		color = HSVToColor(h, s, v)
-		colorCube:SetColor(color)
-
-		wangR:SetText( color.r )
-		wangG:SetText( color.g )
-		wangB:SetText( color.b )
-	end
-
-	function colorCube:OnUserChanged( color ) 
-		wangR:SetText( color.r )
-		wangG:SetText( color.g )
-		wangB:SetText( color.b )
-	end
-
-	local confirmButton = vgui.Create( "DButton", container)
-	confirmButton:SetText( "Confirm" )
-	confirmButton:DockMargin(5, 0, 0, 3)
-	confirmButton:Dock( BOTTOM )
-
-	function confirmButton:DoClick()
-		local finalColor = colorCube:GetRGB()
-		finalColor = Vector(finalColor.r / 255, finalColor.g / 255, finalColor.b / 255)
-
-		LocalPlayer():ConCommand( "unity_setplayercolor " .. tostring(finalColor) )
-
-		function panel.modelPanel.Entity:GetPlayerColor()
-			return finalColor
-		end
+	function playerColorMixer:ValueChanged()
+		LocalPlayer():ConCommand("unity_playercolor " .. tostring( playerColorMixer:GetVector()))
 	end
 
 	return container
@@ -190,43 +110,16 @@ function PANEL:SettingsTab( parent )
 	local container = vgui.Create( "DPanel", parent )
 
 	local serverConvars = {
-		["unity_allowcommands"] = "Enable Commands",
-		["unity_allowcustommodels"] = "Enable Custom Models",
-		["unity_allowautorespawn"] = "Enable Respawning",
-		["unity_givegravitygun"] = "Give Gravity Gun",
 		["unity_enablehardcore"] = "Enable Hardcore",
 		["unity_playershurtplayers"] = "Enable PvP",
-		["gmod_suit"] = "Enable HEV Suit"
-	}
-
-	local clientConvars = {
-		["unity_vignette"] = "Enable Vignette"
+		["gmod_suit"] = "Enable HEV Suit",
+		["unity_allowcommands"] = "Enable Chat Commands",
+		["unity_allowcustommodels"] = "Enable Custom Models",
+		["unity_givegravitygun"] = "Give Gravity Gun"
 	}
 
 	local settingsScroll = vgui.Create( "DScrollPanel", container )
 	settingsScroll:Dock( FILL )
-
-	local clientSettingsHeader = settingsScroll:Add( "DLabel" )
-	clientSettingsHeader:SetText( "Client Settings" )
-	clientSettingsHeader:SetColor(Color(0, 0, 0))
-	clientSettingsHeader:SetAutoStretchVertical( true )
-	clientSettingsHeader:SetFont("DermaLarge")
-	clientSettingsHeader:Dock( TOP )
-	clientSettingsHeader:DockMargin(10, 10, 0, 5)
-
-	for k, v in pairs(clientConvars) do
-		local convar = GetConVar( k )
-
-		local convarControl = settingsScroll:Add( "DCheckBoxLabel" )
-		convarControl:SetText( v )
-		convarControl:SetTooltip( convar:GetHelpText() )
-		convarControl:SetTextColor(Color(0, 0, 0))
-		convarControl:SetConVar( k )
-		convarControl:SetValue(  LocalPlayer():GetInfo( k ) )
-		convarControl:SizeToContents()
-		convarControl:Dock( TOP )
-		convarControl:DockMargin(10, 0, 0, 5)
-	end
 
 	if LocalPlayer():IsAdmin() then
 		local settingsHeader = settingsScroll:Add( "DLabel" )
@@ -240,7 +133,7 @@ function PANEL:SettingsTab( parent )
 		local helpText = settingsScroll:Add( "DLabel" )
 		helpText:Dock( TOP )
 		helpText:DockMargin(10, 0, 0, 5)
-		helpText:SetText( "Reopen Menu to View Changes!" )
+		helpText:SetText( "Changes take effect instantly but the menu will not update until reopened." )
 		helpText:SetColor( Color(0, 0, 0) )
 		helpText:SetFont( "Default" )
 
@@ -280,7 +173,7 @@ function PANEL:SettingsTab( parent )
 		convarControlRTimeText:SetText( "Respawn Waiting Time" )
 		convarControlRTimeText:SetColor( Color(0, 0, 0) )
 
-		for k, v in pairs(serverConvars) do
+		for k, v in SortedPairs(serverConvars) do
 			local convar = GetConVar( k )
 
 			local convarControl = settingsScroll:Add( "DCheckBoxLabel" )
