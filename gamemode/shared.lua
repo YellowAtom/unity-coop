@@ -57,7 +57,10 @@ function GM:PlayerInitialSpawn( client, transition )
 	end
 end
 
-function GM:PlayerSpawn( client )
+function GM:PlayerSpawn( client, transition )
+	player_manager.OnPlayerSpawn( client, transiton )
+	player_manager.RunClass( client, "Spawn" )
+
 	if client:IsBot() then
 		client:SetModel(unity.defaultPlayerModels[math.random(#unity.defaultPlayerModels)])
 		return
@@ -66,6 +69,7 @@ function GM:PlayerSpawn( client )
 	client:SetModel( client:GetInfo( "unity_playermodel" ) )
 	client:SetPlayerColor( Vector( client:GetInfo( "unity_playercolor" )))
 	client:SetupHands()
+	client:UnSpectate()
 
 	// Sets all the HL2 movement values.
 	client:SetSlowWalkSpeed( 150 ) // Walk Speed
@@ -79,21 +83,21 @@ function GM:PlayerSpawn( client )
 	// This makes players non-solid only to each other, this feels like it could have unforeseen consequences though.
 	client:SetCollisionGroup( COLLISION_GROUP_PASSABLE_DOOR )
 
-	if cvars.Bool("unity_givegravitygun", false) then
+	if cvars.Bool("unity_givegravitygun", false) and !transiton then
 		client:Give("weapon_physcannon")
 	end
 end
 
 function unity:Announce( text )
 	for _, v in ipairs(player.GetAll()) do
-		v:ChatPrint( "[UNITY]" .. text )
+		v:ChatPrint( "[UNITY] " .. text )
 	end
 end
 
 local playerMeta = FindMetaTable("Player")
 
 function playerMeta:Notify( text )
-	self:ChatPrint( "[UNITY]" .. text )
+	self:ChatPrint( "[UNITY] " .. text )
 end
 
 // Gamemode Controls

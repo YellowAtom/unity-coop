@@ -15,7 +15,6 @@ cvars.AddChangeCallback("unity_difficulty", function( convar, oldValue, newValue
 
 	RunConsoleCommand("skill", difficulty)
 	game.SetSkillLevel( difficulty )
-
 end)
 
 unity = unity or {}
@@ -52,10 +51,6 @@ function GM:GetFallDamage( client, fallSpeed )
 	return ( fallSpeed - 526.5 ) * ( 100 / 396 ) // The Source SDK value.
 end
 
-function GM:PlayerDeathThink( client )
-	return false // Disables clicking to respawn on death.
-end
-
 function GM:DoPlayerDeath( client, attacker, dmginfo )
 	client:CreateRagdoll()
 	client:AddDeaths( 1 )
@@ -63,8 +58,8 @@ function GM:DoPlayerDeath( client, attacker, dmginfo )
 	unity:Announce( client:GetName() .. " has died!" )
 
 	// Attacker losses score for killing ally.
-	if ( attacker:IsValid() and attacker:IsPlayer() ) then
-		attacker:AddFrags( -10 ) 
+	if ( attacker:IsValid() and attacker:IsPlayer() and attacker != client ) then
+		attacker:AddFrags( -5 ) 
 	end
 
 	// If all players are now dead on this death then begin failure state.
@@ -92,6 +87,26 @@ function GM:DoPlayerDeath( client, attacker, dmginfo )
 		unity:DropAmmo( client, ammoType, v )
 		client:SetAmmo( 0, ammoType )
 	end
+
+	client.respawnTime = CurTime() + cvars.Number("unity_autorespawntime", 60)
+end
+
+function GM:PlayerDeathThink( client )
+	if client.respawnTime and client.respawnTime < CurTime() then		
+		local alivePlayers = unity:GetAlivePlayers()
+		local obsTarget = client:GetObserverTarget()
+		local target = IsValid(obsTarget) and obsTarget or alivePlayers[math.random(#alivePlayers)]
+
+		client:Spawn()
+
+		if target then 
+			client:SetPos(target:GetPos())
+		end
+	end
+end
+
+function GM:PlayerPostThink( client )
+
 end
 
 function GM:OnNPCKilled( npc, attacker, inflictor )
@@ -101,7 +116,7 @@ function GM:OnNPCKilled( npc, attacker, inflictor )
 end
 
 function GM:PlayerNoClip(client, desiredNoClipState)
-	if ( client:IsAdmin() or not desiredNoClipState ) and client:Alive() then
+	if ( client:IsAdmin() or !desiredNoClipState ) and client:Alive() then
 		return true 
 	end
 
@@ -120,6 +135,68 @@ function GM:PlayerDeathSound( client )
 	end
 
 	return false
+end
+
+function GM:PlayerCanPickupWeapon( client, weapon )
+	if client.unityWeaponPickupDelay and client.unityWeaponPickupDelay > CurTime() then return false end
+
+	local weaponClass = weapon:GetClass()
+
+	for k, v in ipairs( unity.stripAmmoBlacklist ) do
+		if weaponClass == unity.stripAmmoBlacklist then
+			weaponClass = nil
+		end
+	end
+
+    if client:HasWeapon( weapon:GetClass() ) then
+		client:GiveAmmo( weapon:Clip1(), weapon:GetPrimaryAmmoType() )
+		weapon:SetClip1( 0 )
+
+		return false
+	end
+
+	return true
+end
+
+function GM:PlayerCanPickupItem( client, entity )
+	if client.unityItemPickupDelay and client.unityItemPickupDelay > CurTime() then return false end
+
+	local entClass = entity:GetClass()
+	local weaponClass = nil
+
+	for k, v in pairs (unity.ammoTypeInfo) do
+		if v.entity == entClass then
+			weaponClass = v.class
+		end
+	end
+
+	if ( entClass == "unity_ammo" ) then
+		weaponClass = unity.ammoTypeInfo[entity:GetAmmoType()].class
+	end
+
+	if !weaponClass or !client:HasWeapon( weaponClass ) then
+		return false
+	end
+
+	return true
+end
+
+function GM:PlayerAmmoChanged( client, ammoID, oldCount, newCount )
+	local ammoCap = game.GetAmmoMax( ammoID )
+	local ammoType = string.lower( game.GetAmmoName( ammoID ) or "" )
+	local dif = newCount - ammoCap
+
+	if dif > 0 and not client.touchingUnityAmmo then
+
+		local entity =  unity:DropAmmo( client, ammoType, dif )
+
+		local physObj = entity:GetPhysicsObject()
+
+		if IsValid( physObj ) then
+			physObj:SetVelocity( client:GetAimVector() * 200 )
+		end
+
+	end
 end
 
 // Allows for extra ammo types.
@@ -151,14 +228,12 @@ function unity:GameOver()
 
 	// Clean up players for next game.
 	for k, v in ipairs(player.GetAll()) do
-		v:ScreenFade( SCREENFADE.OUT, color_black, 6, 2 ) 
+		v:ScreenFade( SCREENFADE.OUT, color_black, 6, 4 ) 
 		v:ConCommand( "play music/stingers/industrial_suspense".. math.random(1, 2) .. ".wav" )
 		v:StripWeapons()
 		v:StripAmmo()
 
-		if timer.Exists("UnityRespawnTimer_" .. v:SteamID64()) then
-			timer.Remove("UnityRespawnTimer_" .. v:SteamID64())
-		end
+		v.respawnTime = nil
 	end
 
 	// Wait for the screenfade to finish before cleaning up the map and stats.
@@ -167,7 +242,6 @@ function unity:GameOver()
 
 		timer.Simple( 0.2, function() 
 			for k, v in ipairs(player.GetAll()) do
-				v:UnSpectate()
 				v:Spawn()
 
 				// Maybe scoreboard shouldn't reset on failure, unsure.
@@ -208,19 +282,6 @@ function unity:SetPlayerSpectating( client )
 			client:Spectate( OBS_MODE_ROAMING ) 
 		end
 	end)
-
-	timer.Create("UnityRespawnTimer_" .. client:SteamID64(), cvars.Number("unity_autorespawntime", 60), 1, function()
-		local alivePlayers = unity:GetAlivePlayers()
-		local obsTarget = client:GetObserverTarget()
-		local target = IsValid(obsTarget) and obsTarget or alivePlayers[math.random(#alivePlayers)]
-
-		client:UnSpectate()
-		client:Spawn()
-
-		if target then 
-			client:SetPos(target:GetPos())
-		end
-	end)
 end
 
 hook.Add( "KeyPress", "UnitySpectatingControls", function( client, key )
@@ -255,64 +316,6 @@ hook.Add( "KeyPress", "UnitySpectatingControls", function( client, key )
 		if ( client:GetObserverMode() != OBS_MODE_ROAMING) then
 			client:Spectate( OBS_MODE_ROAMING ) 
 		end
-	end
-end)
-
-hook.Add("PlayerCanPickupWeapon", "UnityWeaponPickupModifications", function( client, weapon )
-	if (client.unityWeaponPickupDelay) then return false end
-
-	local weaponClass = weapon:GetClass()
-
-	for k, v in ipairs( unity.stripAmmoBlacklist ) do
-		if weaponClass == unity.stripAmmoBlacklist then
-			weaponClass = nil
-		end
-	end
-
-    if client:HasWeapon( weapon:GetClass() ) then
-		client:GiveAmmo( weapon:Clip1(), weapon:GetPrimaryAmmoType() )
-		weapon:SetClip1( 0 )
-
-		return false
-	end
-end)
-
-hook.Add("PlayerCanPickupItem", "UnityItemPickupModifications", function( client, entity )
-	if (client.unityItemPickupDelay) then return false end
-
-	local entClass = entity:GetClass()
-	local weaponClass = nil
-
-	for k, v in pairs (unity.ammoTypeInfo) do
-		if v.entity == entClass then
-			weaponClass = v.class
-		end
-	end
-
-	if ( entClass == "unity_ammo" ) then
-		weaponClass = unity.ammoTypeInfo[entity:GetAmmoType()].class
-	end
-
-	if !weaponClass or !client:HasWeapon( weaponClass ) then
-		return false
-	end
-end)
-
-hook.Add( "PlayerAmmoChanged", "AmmoCap", function( client, ammoID, oldCount, newCount )
-	local ammoCap = game.GetAmmoMax( ammoID )
-	local ammoType = string.lower( game.GetAmmoName( ammoID ) or "" )
-	local dif = newCount - ammoCap
-
-	if dif > 0 and not client.touchingUnityAmmo then
-
-		local entity =  unity:DropAmmo( client, ammoType, dif )
-
-		local physObj = entity:GetPhysicsObject()
-
-		if IsValid( physObj ) then
-			physObj:SetVelocity( client:GetAimVector() * 200 )
-		end
-
 	end
 end)
 
@@ -356,11 +359,7 @@ concommand.Add("unity_dropweapon", function( client )
 		entity:SetClip1( weapon:Clip1() )
 		entity:SetClip2( weapon:Clip2() )
 
-		client.unityWeaponPickupDelay = true
-
-		timer.Create("unityWeaponPickupDelay", 1.5, 1, function() 
-			client.unityWeaponPickupDelay = false
-		end)
+		client.unityWeaponPickupDelay = CurTime() + 1.5
 	end
 end)
 
@@ -391,10 +390,6 @@ concommand.Add("unity_dropammo", function( client, cmd, args )
 			physObj:SetVelocity( client:GetAimVector() * 200 )
 		end
 
-		client.unityItemPickupDelay = true
-
-		timer.Create("unityItemPickupDelay", 1.5, 1, function() 
-			client.unityItemPickupDelay = false
-		end)
+		client.unityItemPickupDelay = CurTime() + 1.5
 	end
 end)
