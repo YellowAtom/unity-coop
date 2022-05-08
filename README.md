@@ -1,2 +1,2 @@
 # Unity Coop
-An open-source, lightweight [Garry's Mod](https://gmod.facepunch.com/) gamemode made for cooperative Half-Life 2 style gameplay on any map.
+An open-source, lightweight [Garry's Mod](https://store.steampowered.com/app/4000) gamemode made for cooperative Half-Life 2 style gameplay on any map. Workshop upload [here](https://steamcommunity.com/sharedfiles/filedetails/?id=1997426421).

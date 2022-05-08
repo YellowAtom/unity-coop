@@ -1,83 +1,83 @@
 "unitycoop"
 {
-	"base"		"base"
-	"title"		"Unity Coop"
-	"author"	"Yell0wAt0m"
-	"category"	"pve"
+	"base"			"base"
+	"title"			"Unity Coop"
+	"author"		"Yell0wAt0m"
+	"category"		"pve"
 	"menusystem"	"1"
 	
 	"settings"
 	{
 		1
 		{
-			"name"		"unity_difficulty"
-			"text"		"Difficulty"
-			"help"		"The difficulty of the game. 1 = Easy, 2 = Normal, 3 = Hard."
-			"type"		"Numeric"
-			"default"	"2"
+			"name"			"unity_difficulty"
+			"text"			"Difficulty"
+			"help"			"The difficulty of the game. 1 = Easy, 2 = Normal, 3 = Hard."
+			"type"			"Numeric"
+			"default"		"2"
 			"singleplayer"	"1"
 		}
 		2
 		{
-			"name"		"unity_enablehardcore"
-			"text"		"Enable Hardcore"
-			"help"		"Enables the map resetting when all players are dead."
-			"type"		"CheckBox"
-			"default"	"0"
+			"name"			"unity_enablehardcore"
+			"text"			"Enable Hardcore"
+			"help"			"Enables the map resetting when all players are dead."
+			"type"			"CheckBox"
+			"default"		"0"
 			"singleplayer"	"1"
 		}
 		3
 		{
-			"name"		"unity_playershurtplayers"
-			"text"		"Enable PvP"
-			"help"		"If enabled, players will be able to hurt each other"
-			"type"		"CheckBox"
-			"default"	"1"
+			"name"			"unity_playershurtplayers"
+			"text"			"Enable PvP"
+			"help"			"If enabled, players will be able to hurt each other"
+			"type"			"CheckBox"
+			"default"		"1"
 		}
 		4
 		{
-			"name"		"gmod_suit"
-			"text"		"Enable HEV Suit"
-			"help"		"Set to non zero to enable Half-Life 2 aux suit power stuff."
-			"type"		"CheckBox"
-			"default"	"0"
+			"name"			"gmod_suit"
+			"text"			"Enable HEV Suit"
+			"help"			"Set to non zero to enable Half-Life 2 aux suit power stuff."
+			"type"			"CheckBox"
+			"default"		"0"
 			"singleplayer"	"1"
 			"dontcreate"	"1"
 		}
 		5
 		{
-			"name"		"unity_autorespawntime"
-			"text"		"Respawn Waiting Time"
-			"help"		"The amount of time between dying and automically respawning."
-			"type"		"Numeric"
-			"default"	"60"
+			"name"			"unity_autorespawntime"
+			"text"			"Respawn Waiting Time"
+			"help"			"The amount of time between dying and automically respawning."
+			"type"			"Numeric"
+			"default"		"60"
 			"singleplayer"	"1"
 		}
 		6
 		{
-			"name"		"unity_allowcommands"
-			"text"		"Enable Chat Commands"
-			"help"		"Enables the chat commands system such as /bringall."
-			"type"		"CheckBox"
-			"default"	"1"
+			"name"			"unity_allowcommands"
+			"text"			"Enable Chat Commands"
+			"help"			"Enables the chat commands system such as /bringall."
+			"type"			"CheckBox"
+			"default"		"1"
 			"singleplayer"	"1"
 		}
 		7
 		{
-			"name"		"unity_allowcustommodels"
-			"text"		"Enable Custom Models"
-			"help"		"Shows all player models installed instead of just Half-Life 2 Rebels."
-			"type"		"CheckBox"
-			"default"	"1"
+			"name"			"unity_allowcustommodels"
+			"text"			"Enable Custom Models"
+			"help"			"Shows all player models installed instead of just Half-Life 2 Rebels."
+			"type"			"CheckBox"
+			"default"		"1"
 			"singleplayer"	"1"
 		}
 		8
 		{
-			"name"		"unity_givegravitygun"
-			"text"		"Give Gravity Gun"
-			"help"		"Makes players spawn with the gravity gun."
-			"type"		"CheckBox"
-			"default"	"0"
+			"name"			"unity_givegravitygun"
+			"text"			"Give Gravity Gun"
+			"help"			"Makes players spawn with the gravity gun."
+			"type"			"CheckBox"
+			"default"		"0"
 			"singleplayer"	"1"
 		}
 	}

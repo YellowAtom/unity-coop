@@ -51,18 +51,22 @@ function GM:Initialize()
 	end
 end
 
-function GM:PlayerSetModel(client)
+function GM:PlayerInitialSpawn( client, transition )
+	if !transition then
+		client:Notify( "Press F1 for gamemode menu!" )
+	end
+end
+
+function GM:PlayerSpawn( client )
 	if client:IsBot() then
 		client:SetModel(unity.defaultPlayerModels[math.random(#unity.defaultPlayerModels)])
 		return
 	end
 
-	client:SetModel( client:GetInfo("unity_playermodel") )
-	client:SetPlayerColor( Vector(client:GetInfo("unity_playercolor")) )
+	client:SetModel( client:GetInfo( "unity_playermodel" ) )
+	client:SetPlayerColor( Vector( client:GetInfo( "unity_playercolor" )))
 	client:SetupHands()
-end
 
-function GM:PlayerLoadout(client)
 	// Sets all the HL2 movement values.
 	client:SetSlowWalkSpeed( 150 ) // Walk Speed
 	client:SetWalkSpeed( 190 ) // Norm Speed
@@ -72,7 +76,7 @@ function GM:PlayerLoadout(client)
 	// Have to enable flashlight in base gamemode.
 	client:AllowFlashlight( true )
 
-	// This makes players non-solid only to each other.
+	// This makes players non-solid only to each other, this feels like it could have unforeseen consequences though.
 	client:SetCollisionGroup( COLLISION_GROUP_PASSABLE_DOOR )
 
 	if cvars.Bool("unity_givegravitygun", false) then
@@ -80,85 +84,33 @@ function GM:PlayerLoadout(client)
 	end
 end
 
-local playerMeta = FindMetaTable("Player")
-
 function unity:Announce( text )
 	for _, v in ipairs(player.GetAll()) do
-		v:ChatPrint( text )
+		v:ChatPrint( "[UNITY]" .. text )
 	end
 end
+
+local playerMeta = FindMetaTable("Player")
 
 function playerMeta:Notify( text )
-	self:ChatPrint( text )
+	self:ChatPrint( "[UNITY]" .. text )
 end
-
-function GM:DrawDeathNotice( x, y )
-	return
-end
-
-function GM:GetFallDamage(client, fallSpeed)
-	return ( fallSpeed - 526.5 ) * ( 100 / 396 ) // The Source SDK value.
-end
-
-function GM:PlayerNoClip(client, desiredNoClipState)
-	if ( client:IsAdmin() or not desiredNoClipState ) and client:Alive() then
-		return true 
-	end
-
-	return false
-end
-
-hook.Add("OnNPCKilled", "KillCount", function(npc, attacker, inflictor)
-	if attacker:IsPlayer() then
-		attacker:AddFrags( 1 )
-	end
-end)
-
-hook.Add("PlayerInitialSpawn", "UnityMOTD", function(client, transition)
-	if !transition then
-		client:Notify( "Press F1 for the gamemode menu." )
-	end
-end)
-
-function GM:PlayerDeathSound(client)
-	local model = client:GetModel():lower()
-
-	if model:find("female") or model:find("male") then
-		return true
-	end
-
-	return false
-end
-
-hook.Add("PlayerDeath", "UnityDeathSounds", function(client)
-	local model = client:GetModel():lower()
-
-	if (model:find("female")) then
-		client:EmitSound("vo/npc/female01/pain0" .. math.random(1, 6) .. ".wav")
-	elseif (model:find("male")) then
-		client:EmitSound("vo/npc/male01/pain0" .. math.random(1, 6) .. ".wav")
-	end
-end)
-
-hook.Add("PlayerDeath", "UnityDeathAlert", function(client)
-	unity:Announce( client:GetName() .. " has died!" )
-end)
 
 // Gamemode Controls
 
-function GM:ShowHelp(client)
+function GM:ShowHelp( client )
 	client:ConCommand("unity_menu")
 end
 
-function GM:ShowTeam(client)
+function GM:ShowTeam( client )
 	// For future use.
 end
 
-function GM:ShowSpare1(client)
+function GM:ShowSpare1( client )
 	client:ConCommand("unity_dropweapon")
 end
 
-function GM:ShowSpare2(client)
+function GM:ShowSpare2( client )
 	client:ConCommand("unity_dropammo")
 end
 
@@ -217,7 +169,7 @@ unity.command:Add("bring", {
 			end
 		end
 
-		client:Notify("Player not found!")
+		client:Notify( "Player not found!" )
 	end
 })
  

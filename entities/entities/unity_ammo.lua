@@ -9,9 +9,13 @@ ENT.Spawnable = false
 ENT.AdminSpawnable = false
 
 function ENT:SetupDataTables()
-	self:NetworkVar("Int", 0, "AmmoAmount")
 	self:NetworkVar("String", 0, "AmmoType")
+	self:NetworkVar("Int", 0, "AmmoAmount")
 	self:NetworkVar("Bool", 0, "AmmoSpent")
+
+	// Default Values
+	self:SetAmmoType( "smg1" )
+	self:SetAmmoAmount( 45 )
 	self:SetAmmoSpent( false )
 end
 
@@ -24,6 +28,7 @@ if SERVER then
 		self:SetMoveType( MOVETYPE_VPHYSICS )
 		self:SetSolid( SOLID_VPHYSICS )
 		self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+		self:SetUseType( SIMPLE_USE )
 		self:DrawShadow( true )
 		self:SetTrigger( true )
 
@@ -31,6 +36,12 @@ if SERVER then
 
 		if physObj:IsValid() then
 			physObj:Wake()
+		end
+	end
+
+	function ENT:Use( activator, caller, useType, value )
+		if !self:IsPlayerHolding() and !self:Touch( activator ) then
+			activator:PickupObject( self )
 		end
 	end
 
@@ -56,13 +67,15 @@ if SERVER then
 					self:Remove()
 				end
 
-				return
+				return false
 			end
 
 			entity:GiveAmmo(ammoAmount, ammoType)
 
 			self:SetAmmoSpent( true )
 			self:Remove()
+
+			return true
 		end
 	end
 
@@ -72,7 +85,7 @@ if SERVER then
 
 	function ENT:PhysicsCollide(data, physObj)
 		if (data.Speed > 60 and data.DeltaTime > 0.2) then
-			self:EmitSound("Default.ImpactSoft", nil, nil, data.Speed )
+			self:EmitSound("Default.ImpactHard", nil, nil, data.Speed )
 		end
 	end
 

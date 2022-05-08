@@ -8,7 +8,143 @@ include("shared.lua")
 
 resource.AddFile("materials/icon16/unitylogo.png")
 
+cvars.AddChangeCallback("unity_difficulty", function( convar, oldValue, newValue )
+	local difficulty = cvars.Number(convar, 2)
+
+	math.Clamp( difficulty, 1, 3 )
+
+	RunConsoleCommand("skill", difficulty)
+	game.SetSkillLevel( difficulty )
+
+end)
+
 unity = unity or {}
+
+unity.ammoTypeInfo = {
+	["pistol"] = { class = "weapon_pistol", model = "models/items/boxsrounds.mdl", entity = "item_ammo_pistol" },
+	["smg1"] = { class = "weapon_smg1", model = "models/items/boxmrounds.mdl", entity = "item_ammo_smg1" },
+	["smg1_grenade"] = { class = "weapon_smg1", model = "models/items/ar2_grenade.mdl", entity = "item_ammo_smg1_grenade" },
+	["buckshot"] = { class = "weapon_shotgun", model = "models/items/boxbuckshot.mdl", entity = "item_box_buckshot" },
+	["ar2"] = { class = "weapon_ar2", model = "models/items/combine_rifle_cartridge01.mdl", entity = "item_ammo_ar2" },
+	["ar2altfire"] = { class = "weapon_ar2", model = "models/items/combine_rifle_ammo01.mdl", entity = "item_ammo_ar2_altfire" },
+	["357"] = { class = "weapon_357", model = "models/items/357ammo.mdl", entity = "item_ammo_357" },
+	["xbowbolt"] = { class = "weapon_crossbow", model = "models/items/crossbowrounds.mdl", entity = "item_ammo_crossbow" },
+	["rpg_round"] = { class = "weapon_rpg", model = "models/weapons/w_missile_closed.mdl", entity = "item_rpg_round" },
+	["grenade"] = { class = "weapon_frag", model = "models/items/grenadeammo.mdl" },
+	["slam"] = { class = "weapon_slam", model = "models/weapons/w_slam.mdl" }
+}
+
+// These weapons do not work with ammo stripping.
+unity.stripAmmoBlacklist = {
+	"weapon_frag",
+	"weapon_slam"
+}
+
+function GM:PlayerShouldTakeDamage( client, attacker )
+	if ( attacker:IsPlayer() and client != attacker ) then
+		return cvars.Bool( "unity_playershurtplayers", true )
+	end
+
+	return true
+end
+
+function GM:GetFallDamage( client, fallSpeed )
+	return ( fallSpeed - 526.5 ) * ( 100 / 396 ) // The Source SDK value.
+end
+
+function GM:PlayerDeathThink( client )
+	return false // Disables clicking to respawn on death.
+end
+
+function GM:DoPlayerDeath( client, attacker, dmginfo )
+	client:CreateRagdoll()
+	client:AddDeaths( 1 )
+
+	unity:Announce( client:GetName() .. " has died!" )
+
+	// Attacker losses score for killing ally.
+	if ( attacker:IsValid() and attacker:IsPlayer() ) then
+		attacker:AddFrags( -10 ) 
+	end
+
+	// If all players are now dead on this death then begin failure state.
+	if ( #unity:GetAlivePlayers() < 1 and cvars.Bool("unity_enablehardcore", false) ) then
+		unity:GameOver()
+	else
+		unity:SetPlayerSpectating( client )
+	end
+
+	// Drop Weapons
+	for k, v in ipairs(client:GetWeapons()) do
+
+		// Don't drop the gravity gun if we gave it for free!
+		if cvars.Bool("unity_givegravitygun", false) and v == "weapon_physcannon" then
+			continue
+		end
+
+		client:DropWeapon(v, nil, client:GetVelocity())
+	end
+
+	// Drop Ammo
+	for k, v in pairs(client:GetAmmo()) do
+		local ammoType = string.lower(game.GetAmmoName(k) or "")
+
+		unity:DropAmmo( client, ammoType, v )
+		client:SetAmmo( 0, ammoType )
+	end
+end
+
+function GM:OnNPCKilled( npc, attacker, inflictor )
+	if !attacker:IsPlayer() then return end 
+
+	attacker:AddFrags( 1 )
+end
+
+function GM:PlayerNoClip(client, desiredNoClipState)
+	if ( client:IsAdmin() or not desiredNoClipState ) and client:Alive() then
+		return true 
+	end
+
+	return false
+end
+
+function GM:PlayerDeathSound( client )
+	local model = client:GetModel():lower()
+
+	if (model:find("female")) then
+		client:EmitSound("vo/npc/female01/pain0" .. math.random(1, 6) .. ".wav")
+		return true
+	elseif (model:find("male")) then
+		client:EmitSound("vo/npc/male01/pain0" .. math.random(1, 6) .. ".wav")
+		return true
+	end
+
+	return false
+end
+
+// Allows for extra ammo types.
+function unity:AddAmmoType( ammoType, weaponClass, entityModel, ammoEntity )
+	unity.ammoTypeInfo[ammoType].class = weaponClass
+	unity.ammoTypeInfo[ammoType].model = entityModel
+	unity.ammoTypeInfo[ammoType].entity = ammoEntity or nil
+end
+
+function unity:DropAmmo( client, ammoType, ammoAmount )
+	local entity = ents.Create( "unity_ammo" )
+	if !IsValid( entity ) then return end
+
+	entity:SetAmmoAmount( ammoAmount )
+	entity:SetAmmoType( ammoType )
+	entity:SetModel( unity.ammoTypeInfo[ammoType].model or "models/items/boxmrounds.mdl" )
+
+	entity:SetPos( client:GetPos() + Vector(0, 0, 50) )
+	entity:SetAngles( client:GetAngles() )
+	entity:Spawn()
+
+	client:RemoveAmmo( ammoAmount, ammoType )
+
+	return entity
+end
 
 function unity:GameOver()
 	unity.gameending = true
@@ -26,7 +162,7 @@ function unity:GameOver()
 	end
 
 	// Wait for the screenfade to finish before cleaning up the map and stats.
-	timer.Simple( 8, function() 
+	timer.Simple( 10, function() 
 		game.CleanUpMap( false, {} ) 
 
 		timer.Simple( 0.2, function() 
@@ -46,17 +182,6 @@ function unity:GameOver()
 	end)
 end
 
-function unity:CheckAllDead()
-	// If a single player returns alive, not all of them are dead.
-	for k, v in ipairs(player.GetAll()) do
-		if (v:IsValid() and v:Alive()) then
-			return false;
-		end
-	end
-
-	return true;
-end
-
 function unity:GetAlivePlayers()
 	local alivePlayers = {}
 
@@ -69,220 +194,118 @@ function unity:GetAlivePlayers()
 	return alivePlayers
 end
 
-function unity:GetNextAlivePlayer(client)
-	local alivePlayers = unity:GetAlivePlayers()
-
-	if #alivePlayers < 1 then return nil end
-
-	local previous = nil
-	local choice = nil
-
-	if IsValid(client) then
-		for k, v in ipairs(alivePlayers) do
-			if previous == client then
-				choice = v
-			end
-
-			previous = v
-		end
-	end
-
-	if not IsValid(choice) then
-		choice = alivePlayers[1]
-	end
-
-	return choice
-end
-
 function unity:SetPlayerSpectating( client )
-	timer.Simple(0.5, function() 
-		if(client:IsValid()) then 
+	if not IsValid( client ) then return end
+
+	timer.Simple(0.2, function() 
+		local alivePlayers = unity:GetAlivePlayers()
+		local target = alivePlayers[math.random(#alivePlayers)]
+
+		if target then
+			client:Spectate( OBS_MODE_CHASE )
+			client:SpectateEntity( target )
+		else
 			client:Spectate( OBS_MODE_ROAMING ) 
-		end 
+		end
 	end)
 
 	timer.Create("UnityRespawnTimer_" .. client:SteamID64(), cvars.Number("unity_autorespawntime", 60), 1, function()
 		local alivePlayers = unity:GetAlivePlayers()
-		local target = unity:GetAlivePlayers()[math.random(#alivePlayers)]
+		local obsTarget = client:GetObserverTarget()
+		local target = IsValid(obsTarget) and obsTarget or alivePlayers[math.random(#alivePlayers)]
 
 		client:UnSpectate()
 		client:Spawn()
 
-		if( target and target:Alive()) then
+		if target then 
 			client:SetPos(target:GetPos())
 		end
 	end)
 end
 
-// Hooks
-
-cvars.AddChangeCallback("unity_difficulty", function(convar, oldValue, newValue)
-	local difficulty = cvars.Number(convar, 2)
-
-	math.Clamp( difficulty, 1, 3 )
-
-	if SERVER then
-		RunConsoleCommand("skill", difficulty)
-		game.SetSkillLevel( difficulty )
-	end
-end)
-
-hook.Add("PlayerShouldTakeDamage", "UnityPVPEnabled", function(client, attacker)
-	if ( attacker:IsValid() and attacker:IsPlayer() and client != attacker ) then
-		return cvars.Bool( "unity_playershurtplayers", true )
-	end
-end)
-
 hook.Add( "KeyPress", "UnitySpectatingControls", function( client, key )
-	if( key == IN_ATTACK ) then
-		if(!client:Alive() and client:GetMoveType() == MOVETYPE_OBSERVER) then
-			local target = unity:GetNextAlivePlayer( client:GetObserverTarget() )
+	if (client:Alive() or !client:GetMoveType() == MOVETYPE_OBSERVER) then
+		return
+	end
 
-			if not target then return end
+	if ( key == IN_ATTACK ) then
+		local alivePlayers = unity:GetAlivePlayers()
 
-			if (target:IsValid() and target:Alive()) then
-				client:Spectate( OBS_MODE_CHASE )
-				client:SpectateEntity(target)
+		if #alivePlayers < 1 then return end
+
+		local currentTarget = client:GetObserverTarget()
+		local target = nil
+
+		if IsValid( currentTarget ) then
+			for k, v in ipairs( alivePlayers ) do
+				if v == currentTarget then
+					target = alivePlayers[k+1]
+					return // TEST THIS
+				end
 			end
 		end
+
+		if not IsValid( target ) then
+			target = alivePlayers[math.random(#alivePlayers)]
+		end
+
+		client:Spectate( OBS_MODE_CHASE )
+		client:SpectateEntity( target )
 	elseif ( key == IN_JUMP ) then
-		if(!client:Alive() and client:GetObserverMode() == OBS_MODE_CHASE) then
+		if ( client:GetObserverMode() != OBS_MODE_ROAMING) then
 			client:Spectate( OBS_MODE_ROAMING ) 
 		end
 	end
 end)
 
-hook.Add("PlayerDeath", "UnityGameOver", function()
-	if unity:CheckAllDead() and cvars.Bool("unity_enablehardcore", false) then
-		unity:GameOver()
-	end
-end)
-
-hook.Add("PlayerDeath", "UnitySpectating", function(client) 
-	if not (unity.gameending) then
-		unity:SetPlayerSpectating( client )
-	end
-end)
-
-// Disables clicking to respawn on death.
-hook.Add("PlayerDeathThink", "UnityDisableDefaultRespawn", function( client )
-	return false
-end)
-
 hook.Add("PlayerCanPickupWeapon", "UnityWeaponPickupModifications", function( client, weapon )
 	if (client.unityWeaponPickupDelay) then return false end
 
-	// This would break grenade type weapons without the catch.
-    if client:HasWeapon( weapon:GetClass() ) and weapon:GetClass() != "weapon_frag" and weapon:GetClass() != "weapon_slam" then
-		client:GiveAmmo(weapon:Clip1(), weapon:GetPrimaryAmmoType())
+	local weaponClass = weapon:GetClass()
+
+	for k, v in ipairs( unity.stripAmmoBlacklist ) do
+		if weaponClass == unity.stripAmmoBlacklist then
+			weaponClass = nil
+		end
+	end
+
+    if client:HasWeapon( weapon:GetClass() ) then
+		client:GiveAmmo( weapon:Clip1(), weapon:GetPrimaryAmmoType() )
 		weapon:SetClip1( 0 )
 
 		return false
 	end
 end)
 
-// TODO: Allow users to insert into these tables for custom ammo type support.
-
-local ammoEntityTranslation = {
-	["item_ammo_pistol"] = "weapon_pistol",
-	["item_ammo_smg1"] = "weapon_smg1",
-	["item_box_buckshot"] = "weapon_shotgun",
-	["item_ammo_ar2"] = "weapon_ar2",
-	["item_ammo_357"] = "weapon_357",
-	["item_ammo_crossbow"] = "weapon_crossbow",
-	["item_rpg_round"] = "weapon_rpg"
-}
-
-local ammoTypeTranslation = {
-	["pistol"] = "weapon_pistol",
-	["smg1"] = "weapon_smg1",
-	["buckshot"] = "weapon_shotgun",
-	["ar2"] = "weapon_ar2",
-	["357"] = "weapon_357",
-	["xbowbolt"] = "weapon_crossbow",
-	["rpg_round"] = "weapon_rpg"
-}
-
-local ammoModelTranslation = {
-	["pistol"] = "models/items/boxsrounds.mdl",
-	["smg1"] = "models/items/boxmrounds.mdl",
-	["buckshot"] = "models/items/boxbuckshot.mdl",
-	["ar2"] = "models/items/combine_rifle_cartridge01.mdl",
-	["357"] = "models/items/357ammo.mdl",
-	["xbowbolt"] = "models/items/crossbowrounds.mdl",
-	["grenade"] = "models/items/grenadeammo.mdl",
-	["rpg_round"] = "models/weapons/w_missile_closed.mdl",
-	["slam"] = "models/weapons/w_slam.mdl"
-}
-
-hook.Add("PlayerCanPickupItem", "unityItemPickupModifications", function( client, entity )
+hook.Add("PlayerCanPickupItem", "UnityItemPickupModifications", function( client, entity )
 	if (client.unityItemPickupDelay) then return false end
 
 	local entClass = entity:GetClass()
-	local weaponClass = ammoEntityTranslation[entClass]
+	local weaponClass = nil
 
-	if entClass == "unity_ammo" then
-		weaponClass = ammoTypeTranslation[entity:GetAmmoType()]
+	for k, v in pairs (unity.ammoTypeInfo) do
+		if v.entity == entClass then
+			weaponClass = v.class
+		end
 	end
 
-	if weaponClass and not client:HasWeapon( weaponClass ) then
+	if ( entClass == "unity_ammo" ) then
+		weaponClass = unity.ammoTypeInfo[entity:GetAmmoType()].class
+	end
+
+	if !weaponClass or !client:HasWeapon( weaponClass ) then
 		return false
 	end
 end)
 
-hook.Add("DoPlayerDeath", "DeathDropEquipment", function(client)
-	if not client:IsValid() then return end
-
-	// Drop Weapons
-	for k, v in ipairs(client:GetWeapons()) do
-
-		// Don't drop the gravity gun if we gave it for free!
-		if cvars.Bool("unity_givegravitygun", false) and v == "weapon_physcannon" then
-			continue
-		end
-
-		client:DropWeapon(v, nil, client:GetVelocity())
-	end
-
-	// Drop Ammo
-	for k, v in pairs(client:GetAmmo()) do
-		local ammoTypeName = string.lower(game.GetAmmoName(k) or "")
-
-		local entity = ents.Create( "unity_ammo" )
-		if !IsValid( entity ) then return end
-
-		entity:SetAmmoAmount( v )
-		entity:SetAmmoType( ammoTypeName )
-		entity:SetModel( ammoModelTranslation[ammoTypeName] or "models/items/boxmrounds.mdl" )
-
-		entity:SetPos( client:GetPos() + Vector(0, 0, 50) )
-		entity:SetAngles( client:GetAngles() )
-		entity:Spawn()
-
-		client:SetAmmo(0, ammoTypeName)
-	end
-end)
-
 hook.Add( "PlayerAmmoChanged", "AmmoCap", function( client, ammoID, oldCount, newCount )
-	local ammoCap = game.GetAmmoMax(ammoID)
-	local ammoTypeName = string.lower(game.GetAmmoName(ammoID) or "")
+	local ammoCap = game.GetAmmoMax( ammoID )
+	local ammoType = string.lower( game.GetAmmoName( ammoID ) or "" )
 	local dif = newCount - ammoCap
 
 	if dif > 0 and not client.touchingUnityAmmo then
-		client:SetAmmo(ammoCap, ammoTypeName)
 
-		local entity = ents.Create( "unity_ammo" )
-		if !IsValid( entity ) then return end
-
-		client:DoAnimationEvent( ACT_GMOD_GESTURE_ITEM_DROP ) // ehhhh
-		
-		entity:SetAmmoAmount( dif )
-		entity:SetAmmoType( ammoTypeName )
-		entity:SetModel( ammoModelTranslation[ammoTypeName] or "models/items/boxmrounds.mdl" )
-
-		entity:SetPos( client:GetPos() + Vector(0, 0, 50) )
-		entity:SetAngles( client:GetAngles() )
-		entity:Spawn()
+		local entity =  unity:DropAmmo( client, ammoType, dif )
 
 		local physObj = entity:GetPhysicsObject()
 
@@ -360,20 +383,7 @@ concommand.Add("unity_dropammo", function( client, cmd, args )
 
 		if ammoCount <= 0 or dropAmount == 0 then return end
 
-		client:RemoveAmmo( dropAmount, ammoType )
-
-		local entity = ents.Create( "unity_ammo" )
-		if !IsValid( entity ) then return end
-		
-		entity:SetAmmoAmount( dropAmount )
-		entity:SetAmmoType( ammoTypeName )
-		entity:SetModel( ammoModelTranslation[ammoTypeName] or "models/items/boxmrounds.mdl" )
-
-		client:DoAnimationEvent( ACT_GMOD_GESTURE_ITEM_DROP )
-
-		entity:SetPos( client:GetPos() + Vector(0, 0, 50) )
-		entity:SetAngles( client:GetAngles() )
-		entity:Spawn()
+		local entity = unity:DropAmmo( client, ammoTypeName, dropAmount )
 
 		local physObj = entity:GetPhysicsObject()
 
