@@ -63,12 +63,12 @@ function GM:PlayerSpawn( client, transition )
 
 	if client:IsBot() then
 		client:SetModel(unity.defaultPlayerModels[math.random(#unity.defaultPlayerModels)])
-		return
+	else
+		client:SetModel( client:GetInfo( "unity_playermodel" ) )
+		client:SetPlayerColor( Vector( client:GetInfo( "unity_playercolor" )))
+		client:SetupHands()
 	end
 
-	client:SetModel( client:GetInfo( "unity_playermodel" ) )
-	client:SetPlayerColor( Vector( client:GetInfo( "unity_playercolor" )))
-	client:SetupHands()
 	client:UnSpectate()
 
 	// Sets all the HL2 movement values.
