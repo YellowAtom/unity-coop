@@ -105,10 +105,6 @@ function GM:PlayerDeathThink( client )
 	end
 end
 
-function GM:PlayerPostThink( client )
-
-end
-
 function GM:OnNPCKilled( npc, attacker, inflictor )
 	if !attacker:IsPlayer() then return end 
 
@@ -199,6 +195,41 @@ function GM:PlayerAmmoChanged( client, ammoID, oldCount, newCount )
 	end
 end
 
+function GM:KeyPress( client, key )
+	if (client:Alive() or !client:GetMoveType() == MOVETYPE_OBSERVER) then
+		return
+	end
+
+	if ( key == IN_ATTACK ) then
+		local alivePlayers = unity:GetAlivePlayers()
+
+		if #alivePlayers < 1 then return end
+
+		local currentTarget = client:GetObserverTarget()
+		local target = nil
+
+		if IsValid( currentTarget ) then
+			for k, v in ipairs( alivePlayers ) do
+				if v == currentTarget then
+					target = alivePlayers[k+1]
+					return // TEST THIS
+				end
+			end
+		end
+
+		if not IsValid( target ) then
+			target = alivePlayers[math.random(#alivePlayers)]
+		end
+
+		client:Spectate( OBS_MODE_CHASE )
+		client:SpectateEntity( target )
+	elseif ( key == IN_JUMP ) then
+		if ( client:GetObserverMode() != OBS_MODE_ROAMING) then
+			client:Spectate( OBS_MODE_ROAMING ) 
+		end
+	end
+end
+
 // Allows for extra ammo types.
 function unity:AddAmmoType( ammoType, weaponClass, entityModel, ammoEntity )
 	unity.ammoTypeInfo[ammoType].class = weaponClass
@@ -283,41 +314,6 @@ function unity:SetPlayerSpectating( client )
 		end
 	end)
 end
-
-hook.Add( "KeyPress", "UnitySpectatingControls", function( client, key )
-	if (client:Alive() or !client:GetMoveType() == MOVETYPE_OBSERVER) then
-		return
-	end
-
-	if ( key == IN_ATTACK ) then
-		local alivePlayers = unity:GetAlivePlayers()
-
-		if #alivePlayers < 1 then return end
-
-		local currentTarget = client:GetObserverTarget()
-		local target = nil
-
-		if IsValid( currentTarget ) then
-			for k, v in ipairs( alivePlayers ) do
-				if v == currentTarget then
-					target = alivePlayers[k+1]
-					return // TEST THIS
-				end
-			end
-		end
-
-		if not IsValid( target ) then
-			target = alivePlayers[math.random(#alivePlayers)]
-		end
-
-		client:Spectate( OBS_MODE_CHASE )
-		client:SpectateEntity( target )
-	elseif ( key == IN_JUMP ) then
-		if ( client:GetObserverMode() != OBS_MODE_ROAMING) then
-			client:Spectate( OBS_MODE_ROAMING ) 
-		end
-	end
-end)
 
 // Console Commands
 
