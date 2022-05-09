@@ -212,7 +212,6 @@ function GM:KeyPress( client, key )
 			for k, v in ipairs( alivePlayers ) do
 				if v == currentTarget then
 					target = alivePlayers[k+1]
-					return // TEST THIS
 				end
 			end
 		end
