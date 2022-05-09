@@ -94,8 +94,7 @@ end
 function GM:PlayerDeathThink( client )
 	if client.respawnTime and client.respawnTime < CurTime() then		
 		local alivePlayers = unity:GetAlivePlayers()
-		local obsTarget = client:GetObserverTarget()
-		local target = IsValid(obsTarget) and obsTarget or alivePlayers[math.random(#alivePlayers)]
+		local target = alivePlayers[math.random(#alivePlayers)]
 
 		client:Spawn()
 
@@ -103,20 +102,6 @@ function GM:PlayerDeathThink( client )
 			client:SetPos(target:GetPos())
 		end
 	end
-end
-
-function GM:OnNPCKilled( npc, attacker, inflictor )
-	if !attacker:IsPlayer() then return end 
-
-	attacker:AddFrags( 1 )
-end
-
-function GM:PlayerNoClip(client, desiredNoClipState)
-	if ( client:IsAdmin() or !desiredNoClipState ) and client:Alive() then
-		return true 
-	end
-
-	return false
 end
 
 function GM:PlayerDeathSound( client )
@@ -128,6 +113,20 @@ function GM:PlayerDeathSound( client )
 	elseif (model:find("male")) then
 		client:EmitSound("vo/npc/male01/pain0" .. math.random(1, 6) .. ".wav")
 		return true
+	end
+
+	return false
+end
+
+function GM:OnNPCKilled( npc, attacker, inflictor )
+	if !attacker:IsPlayer() then return end 
+
+	attacker:AddFrags( 1 )
+end
+
+function GM:PlayerNoClip(client, desiredNoClipState)
+	if ( client:IsAdmin() or !desiredNoClipState ) and client:Alive() then
+		return true 
 	end
 
 	return false
@@ -196,11 +195,9 @@ function GM:PlayerAmmoChanged( client, ammoID, oldCount, newCount )
 end
 
 function GM:KeyPress( client, key )
-	if (client:Alive() or !client:GetMoveType() == MOVETYPE_OBSERVER) then
-		return
-	end
+	local isSpectating = (!client:Alive() and client:GetMoveType() == MOVETYPE_OBSERVER)
 
-	if ( key == IN_ATTACK ) then
+	if ( key == IN_ATTACK and isSpectating ) then
 		local alivePlayers = unity:GetAlivePlayers()
 
 		if #alivePlayers < 1 then return end
@@ -211,7 +208,7 @@ function GM:KeyPress( client, key )
 		if IsValid( currentTarget ) then
 			for k, v in ipairs( alivePlayers ) do
 				if v == currentTarget then
-					target = alivePlayers[k+1]
+					target = (k == #alivePlayers) and alivePlayers[1] or alivePlayers[k+1] 
 				end
 			end
 		end
@@ -222,9 +219,11 @@ function GM:KeyPress( client, key )
 
 		client:Spectate( OBS_MODE_CHASE )
 		client:SpectateEntity( target )
-	elseif ( key == IN_JUMP ) then
+	end
+
+	if ( key == IN_JUMP and isSpectating ) then
 		if ( client:GetObserverMode() != OBS_MODE_ROAMING) then
-			client:Spectate( OBS_MODE_ROAMING ) 
+			client:Spectate( OBS_MODE_ROAMING )
 		end
 	end
 end
