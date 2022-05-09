@@ -55,15 +55,6 @@
 		}
 		6
 		{
-			"name"			"unity_allowcommands"
-			"text"			"Enable Chat Commands"
-			"help"			"Enables the chat commands system such as /bringall."
-			"type"			"CheckBox"
-			"default"		"1"
-			"singleplayer"	"1"
-		}
-		7
-		{
 			"name"			"unity_allowcustommodels"
 			"text"			"Enable Custom Models"
 			"help"			"Shows all player models installed instead of just Half-Life 2 Rebels."
@@ -71,7 +62,7 @@
 			"default"		"1"
 			"singleplayer"	"1"
 		}
-		8
+		7
 		{
 			"name"			"unity_givegravitygun"
 			"text"			"Give Gravity Gun"

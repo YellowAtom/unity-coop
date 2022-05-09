@@ -387,3 +387,32 @@ concommand.Add("unity_dropammo", function( client, cmd, args )
 		client.unityItemPickupDelay = CurTime() + 1.5
 	end
 end)
+
+concommand.Add("unity_bring", function( client, cmd, args )
+	if !client:IsAdmin() then return end
+
+	for _, target in ipairs(player.GetAll()) do
+		if target:IsPlayer() and target:Alive() and target:GetName() == args[1] then
+			target:SetPos(client:GetPos())
+
+			unity:Announce(string.format("%s has brought %s to their location.", client:GetName(), target:GetName()))
+			return
+		end
+	end
+
+	client:Notify( "Player not found!" )
+end)
+
+concommand.Add("unity_bringall", function( client, cmd, args )
+	if !client:IsAdmin() then return end
+
+	for _, target in ipairs(player.GetAll()) do
+		if(client != target) then
+			if(target:IsPlayer() and target:Alive()) then
+				target:SetPos(client:GetPos())
+			end
+		end
+	end
+
+	unity:Announce(string.format("%s has brought all players to their location.", client:GetName()))
+end)

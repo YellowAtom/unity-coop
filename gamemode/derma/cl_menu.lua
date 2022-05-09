@@ -113,7 +113,6 @@ function PANEL:SettingsTab( parent )
 		["unity_enablehardcore"] = "Enable Hardcore",
 		["unity_playershurtplayers"] = "Enable PvP",
 		["gmod_suit"] = "Enable HEV Suit",
-		["unity_allowcommands"] = "Enable Chat Commands",
 		["unity_allowcustommodels"] = "Enable Custom Models",
 		["unity_givegravitygun"] = "Give Gravity Gun"
 	}
@@ -244,32 +243,6 @@ All weapons have the same ammo caps as Half-Life 2.]])
 		control:Dock( TOP )
 	end
 
-	if cvars.Bool("unity_allowcommands", true) then
-		local commandsHeader = vgui.Create( "DLabel", container )
-		commandsHeader:SetText( "Commands" )
-		commandsHeader:SetColor(Color(0, 0, 0))
-		commandsHeader:SetAutoStretchVertical( true )
-		commandsHeader:SetFont("DermaLarge")
-		commandsHeader:DockMargin(10, 10, 0, 5)
-		commandsHeader:Dock( TOP )
-
-		local commandsScrollPanel = vgui.Create( "DScrollPanel", container )
-		commandsScrollPanel:Dock( FILL )
-		commandsScrollPanel:DockMargin(0, 0, 450, 5)
-
-		for k, v in pairs(unity.command.list) do
-			local command = commandsScrollPanel:Add( "DLabel" )
-			command:SetFont( "DermaDefault" )
-			command:SetText(string.format("/%s — %s", k, v.description))
-			command:SetColor(Color(0, 0, 0))
-			command:SetAutoStretchVertical( true )
-			command:SetWrap( true )
-			command:SizeToContents()
-			command:DockMargin(10, 0, 0, 5)
-			command:Dock( TOP )
-		end
-	end
-
 	local difficultyTranslation = {
 		"Easy",
 		"Normal",
@@ -308,7 +281,7 @@ end
 vgui.Register("unityMenu", PANEL, "Panel")
 
 concommand.Add("unity_menu", function( client ) 
-    if not gui.IsGameUIVisible() then
+    if !gui.IsGameUIVisible() then
 		vgui.Create("unityMenu"):Populate()
 	end
 end)
