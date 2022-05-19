@@ -159,7 +159,7 @@ function GM:PlayerCanPickupItem( client, entity )
 	local entClass = entity:GetClass()
 	local weaponClass = nil
 
-	for k, v in pairs (unity.ammoTypeInfo) do
+	for k, v in pairs(unity.ammoTypeInfo) do
 		if v.entity == entClass then
 			weaponClass = v.class
 		end
@@ -167,6 +167,12 @@ function GM:PlayerCanPickupItem( client, entity )
 
 	if ( entClass == "unity_ammo" ) then
 		weaponClass = unity.ammoTypeInfo[entity:GetAmmoType()].class
+	end
+
+	for k, v in ipairs(unity.stripAmmoBlacklist) do
+		if weaponClass = v then
+			return true
+		end
 	end
 
 	if !weaponClass or !client:HasWeapon( weaponClass ) then
