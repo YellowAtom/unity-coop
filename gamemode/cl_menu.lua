@@ -1,7 +1,7 @@
-local PANEL = {}
 
 local GM = GM or {}
-local unity = unity or {}
+
+local PANEL = {}
 
 function PANEL:CustomizationTab( parent )
 	local container = vgui.Create( "DPanel", parent )
@@ -34,7 +34,7 @@ function PANEL:CustomizationTab( parent )
 	ListPanel:SetSpaceY( 2 )
 	ListPanel:SetSpaceX( 2 )
 
-	local playerModels = unity.defaultPlayerModels
+	local playerModels = UNITY_DEFAULT_MODELS
 
 	if cvars.Bool("unity_allowcustommodels", false) then
 		playerModels = player_manager.AllValidModels()
@@ -281,7 +281,7 @@ end
 vgui.Register("unityMenu", PANEL, "Panel")
 
 concommand.Add("unity_menu", function( client ) 
-    if !gui.IsGameUIVisible() then
+	if !gui.IsGameUIVisible() then
 		vgui.Create("unityMenu"):Populate()
 	end
 end)

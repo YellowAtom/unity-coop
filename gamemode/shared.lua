@@ -1,10 +1,7 @@
 GM.Name = "Unity Coop"
 GM.Author = "Yell0wAt0m"
-GM.Version = "β"
 
-unity = unity or {}
-
-unity.defaultPlayerModels = {
+UNITY_DEFAULT_MODELS = {
 	"models/player/group03/male_01.mdl",
 	"models/player/group03/male_02.mdl",
 	"models/player/group03/male_03.mdl",
@@ -53,7 +50,7 @@ end
 
 function GM:PlayerInitialSpawn( client, transition )
 	if !transition then
-		client:Notify( "Press F1 for gamemode menu!" )
+		client:ChatPrint( "[UNITY] Press F1 for gamemode menu!" )
 	end
 end
 
@@ -62,7 +59,7 @@ function GM:PlayerSpawn( client, transition )
 	player_manager.RunClass( client, "Spawn" )
 
 	if client:IsBot() then
-		client:SetModel(unity.defaultPlayerModels[math.random(#unity.defaultPlayerModels)])
+		client:SetModel(UNITY_DEFAULT_MODELSs[math.random(#UNITY_DEFAULT_MODELS)])
 	else
 		client:SetModel( client:GetInfo( "unity_playermodel" ) )
 		client:SetPlayerColor( Vector( client:GetInfo( "unity_playercolor" )))
@@ -88,18 +85,6 @@ function GM:PlayerSpawn( client, transition )
 	end
 end
 
-function unity:Announce( text )
-	for _, v in ipairs(player.GetAll()) do
-		v:ChatPrint( "[UNITY] " .. text )
-	end
-end
-
-local playerMeta = FindMetaTable("Player")
-
-function playerMeta:Notify( text )
-	self:ChatPrint( "[UNITY] " .. text )
-end
-
 // Gamemode Controls
 
 function GM:ShowHelp( client )
@@ -107,7 +92,6 @@ function GM:ShowHelp( client )
 end
 
 function GM:ShowTeam( client )
-	// For future use.
 end
 
 function GM:ShowSpare1( client )

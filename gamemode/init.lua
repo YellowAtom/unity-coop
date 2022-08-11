@@ -2,7 +2,7 @@ DeriveGamemode("base")
 
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
-AddCSLuaFile("derma/cl_menu.lua")
+AddCSLuaFile("cl_menu.lua")
 
 include("shared.lua")
 
@@ -17,9 +17,7 @@ cvars.AddChangeCallback("unity_difficulty", function( convar, oldValue, newValue
 	game.SetSkillLevel( difficulty )
 end)
 
-unity = unity or {}
-
-unity.ammoTypeInfo = {
+AMMOTYPE_INFO = {
 	["pistol"] = { class = "weapon_pistol", model = "models/items/boxsrounds.mdl", entity = "item_ammo_pistol" },
 	["smg1"] = { class = "weapon_smg1", model = "models/items/boxmrounds.mdl", entity = "item_ammo_smg1" },
 	["smg1_grenade"] = { class = "weapon_smg1", model = "models/items/ar2_grenade.mdl", entity = "item_ammo_smg1_grenade" },
@@ -34,7 +32,7 @@ unity.ammoTypeInfo = {
 }
 
 // These weapons do not work with ammo stripping.
-unity.stripAmmoBlacklist = {
+STRIP_AMMO_BLACKLIST = {
 	"weapon_frag",
 	"weapon_slam"
 }
@@ -55,7 +53,9 @@ function GM:DoPlayerDeath( client, attacker, dmginfo )
 	client:CreateRagdoll()
 	client:AddDeaths( 1 )
 
-	unity:Announce( client:GetName() .. " has died!" )
+	for k, v in ipairs(player.GetAll()) do
+		v:ChatPrint( "[UNITY] " .. client:GetName() .. " has died!" )
+	end
 
 	// Attacker losses score for killing ally.
 	if ( attacker:IsValid() and attacker:IsPlayer() and attacker != client ) then
@@ -137,8 +137,8 @@ function GM:PlayerCanPickupWeapon( client, weapon )
 
 	local weaponClass = weapon:GetClass()
 
-	for k, v in ipairs( unity.stripAmmoBlacklist ) do
-		if weaponClass == unity.stripAmmoBlacklist then
+	for k, v in ipairs( STRIP_AMMO_BLACKLIST ) do
+		if weaponClass == STRIP_AMMO_BLACKLIST then
 			weaponClass = nil
 		end
 	end
@@ -159,17 +159,17 @@ function GM:PlayerCanPickupItem( client, entity )
 	local entClass = entity:GetClass()
 	local weaponClass = nil
 
-	for k, v in pairs(unity.ammoTypeInfo) do
+	for k, v in pairs(AMMOTYPE_INFO) do
 		if v.entity == entClass then
 			weaponClass = v.class
 		end
 	end
 
 	if ( entClass == "unity_ammo" ) then
-		weaponClass = unity.ammoTypeInfo[entity:GetAmmoType()].class
+		weaponClass = AMMOTYPE_INFO[entity:GetAmmoType()].class
 	end
 
-	for k, v in ipairs(unity.stripAmmoBlacklist) do
+	for k, v in ipairs(STRIP_AMMO_BLACKLIST) do
 		if weaponClass = v then
 			return true
 		end
@@ -236,9 +236,9 @@ end
 
 // Allows for extra ammo types.
 function unity:AddAmmoType( ammoType, weaponClass, entityModel, ammoEntity )
-	unity.ammoTypeInfo[ammoType].class = weaponClass
-	unity.ammoTypeInfo[ammoType].model = entityModel
-	unity.ammoTypeInfo[ammoType].entity = ammoEntity or nil
+	AMMOTYPE_INFO[ammoType].class = weaponClass
+	AMMOTYPE_INFOo[ammoType].model = entityModel
+	AMMOTYPE_INFO[ammoType].entity = ammoEntity or nil
 end
 
 function unity:DropAmmo( client, ammoType, ammoAmount )
@@ -247,7 +247,7 @@ function unity:DropAmmo( client, ammoType, ammoAmount )
 
 	entity:SetAmmoAmount( ammoAmount )
 	entity:SetAmmoType( ammoType )
-	entity:SetModel( unity.ammoTypeInfo[ammoType].model or "models/items/boxmrounds.mdl" )
+	entity:SetModel( AMMOTYPE_INFO[ammoType].model or "models/items/boxmrounds.mdl" )
 
 	entity:SetPos( client:GetPos() + Vector(0, 0, 50) )
 	entity:SetAngles( client:GetAngles() )
@@ -401,24 +401,29 @@ concommand.Add("unity_bring", function( client, cmd, args )
 		if target:IsPlayer() and target:Alive() and target:GetName() == args[1] then
 			target:SetPos(client:GetPos())
 
-			unity:Announce(string.format("%s has brought %s to their location.", client:GetName(), target:GetName()))
+			for k, v in ipairs(player.GetAll()) do
+				v:ChatPrint( string.format("[UNITY] %s has brought %s to their location.", client:GetName(), target:GetName()) )
+			end
+
 			return
 		end
 	end
 
-	client:Notify( "Player not found!" )
+	client:ChatPrint( "Player not found!" )
 end)
 
 concommand.Add("unity_bringall", function( client, cmd, args )
 	if !client:IsAdmin() then return end
 
-	for _, target in ipairs(player.GetAll()) do
-		if(client != target) then
-			if(target:IsPlayer() and target:Alive()) then
-				target:SetPos(client:GetPos())
+	for k, v in ipairs(player.GetAll()) do
+		if(client != v) then
+			if(v:IsPlayer() and v:Alive()) then
+				v:SetPos(client:GetPos())
 			end
 		end
 	end
 
-	unity:Announce(string.format("%s has brought all players to their location.", client:GetName()))
+	for k, v in ipairs(player.GetAll()) do
+		v:ChatPrint( string.format("[UNITY] %s has brought all players to their location.", client:GetName()) )
+	end
 end)
