@@ -1,7 +1,9 @@
+
 GM.Name = "Unity Coop"
 GM.Author = "Yell0wAt0m"
+GM.Version = "0.6"
 
-UNITY_DEFAULT_MODELS = {
+GM.DefaultPlayerModels = {
 	"models/player/group03/male_01.mdl",
 	"models/player/group03/male_02.mdl",
 	"models/player/group03/male_03.mdl",
@@ -38,66 +40,13 @@ UNITY_DEFAULT_MODELS = {
 }
 
 function GM:Initialize()
-	if SERVER then
-		local difficulty = cvars.Number("unity_difficulty", 2)
+end
 
-		math.Clamp( difficulty, 1, 3 )
+-- Should be using this instead of setting players collsion group to a 
+-- passable door, this doesn't appear to function though despite being a wiki example.
 
-		RunConsoleCommand("skill", difficulty)
-		game.SetSkillLevel( difficulty )
+--[[ function GM:ShouldCollide( entity1, entity2 )
+	if (entity1:IsPlayer() and entity2:IsPlayer()) then 
+		return false 
 	end
-end
-
-function GM:PlayerInitialSpawn( client, transition )
-	if !transition then
-		client:ChatPrint( "[UNITY] Press F1 for gamemode menu!" )
-	end
-end
-
-function GM:PlayerSpawn( client, transition )
-	player_manager.OnPlayerSpawn( client, transiton )
-	player_manager.RunClass( client, "Spawn" )
-
-	if client:IsBot() then
-		client:SetModel(UNITY_DEFAULT_MODELSs[math.random(#UNITY_DEFAULT_MODELS)])
-	else
-		client:SetModel( client:GetInfo( "unity_playermodel" ) )
-		client:SetPlayerColor( Vector( client:GetInfo( "unity_playercolor" )))
-		client:SetupHands()
-	end
-
-	client:UnSpectate()
-
-	// Sets all the HL2 movement values.
-	client:SetSlowWalkSpeed( 150 ) // Walk Speed
-	client:SetWalkSpeed( 190 ) // Norm Speed
-	client:SetRunSpeed( 320 ) // Sprint Speed
-	client:SetCrouchedWalkSpeed( 0.33333333 ) // Crouch Modifier from Norm Speed
-
-	// Have to enable flashlight in base gamemode.
-	client:AllowFlashlight( true )
-
-	// This makes players non-solid only to each other, this feels like it could have unforeseen consequences though.
-	client:SetCollisionGroup( COLLISION_GROUP_PASSABLE_DOOR )
-
-	if cvars.Bool("unity_givegravitygun", false) and !transiton then
-		client:Give("weapon_physcannon")
-	end
-end
-
-// Gamemode Controls
-
-function GM:ShowHelp( client )
-	client:ConCommand("unity_menu")
-end
-
-function GM:ShowTeam( client )
-end
-
-function GM:ShowSpare1( client )
-	client:ConCommand("unity_dropweapon")
-end
-
-function GM:ShowSpare2( client )
-	client:ConCommand("unity_dropammo")
-end
+end ]]

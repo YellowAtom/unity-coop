@@ -1,12 +1,32 @@
 
-local GM = GM or {}
-
 local PANEL = {}
 
-function PANEL:CustomizationTab( parent )
-	local container = vgui.Create( "DPanel", parent )
+function PANEL:Init()
+	self:SetSize( 750, 500 )
+	self:Center()
+	self:SetTitle( "Unity Menu" )
+	self:SetIcon( "icon16/unitylogo.png" )
+	self:SetDraggable( true )
+	self:ShowCloseButton( true )
+	self:MakePopup()
+
+	local propertySheet = vgui.Create( "DPropertySheet", self )
+	propertySheet:Dock( FILL )
+
+	propertySheet:AddSheet( "Customization", self:CreateCustomization(), "icon16/user.png" )
+	propertySheet:AddSheet( "Settings", self:CreateSettings(), "icon16/wrench.png" )
+	propertySheet:AddSheet( "Help", self:CreateHelp(), "icon16/help.png" )
+end
+
+function PANEL:Think()
+	if (gui.IsGameUIVisible()) then
+		self:Close()
+	end
+end
+
+function PANEL:CreateCustomization()
+	local container = vgui.Create( "DPanel", self )
 	local client = LocalPlayer()
-	local panel = self
 
 	self.modelPanel = vgui.Create( "DModelPanel", container )
 	self.modelPanel:SetSize( 200, 400 )
@@ -34,7 +54,7 @@ function PANEL:CustomizationTab( parent )
 	ListPanel:SetSpaceY( 2 )
 	ListPanel:SetSpaceX( 2 )
 
-	local playerModels = UNITY_DEFAULT_MODELS
+	local playerModels = GAMEMODE.DefaultPlayerModels
 
 	if cvars.Bool("unity_allowcustommodels", false) then
 		playerModels = player_manager.AllValidModels()
@@ -55,7 +75,7 @@ function PANEL:CustomizationTab( parent )
 		end
 	end
 
-	local applyButton = vgui.Create( "DButton", container)
+	local applyButton = vgui.Create( "DButton", container )
 	applyButton:SetText( "Update Model" )
 	applyButton:SetIcon( "icon16/tick.png" )
 	applyButton:SetTooltip( "Changes you've made are already saved, click this to apply them before next death." )
@@ -66,24 +86,25 @@ function PANEL:CustomizationTab( parent )
 		LocalPlayer():ConCommand("unity_updatemodel")
 	end
 
-	local colorButton = vgui.Create( "DButton", container)
+	local colorButton = vgui.Create( "DButton", container )
 	colorButton:SetText( "Colour Editor" )
 	colorButton:SetIcon( "icon16/color_wheel.png" )
 	colorButton:SetTooltip( "Opens the colour editor for your player colour." )
 	colorButton:Dock( BOTTOM )
 	colorButton:DockMargin(3, 3, 400, 3)
 
-	function colorButton:DoClick()
-		PANEL:ColorEditor( parent, panel )
+	colorButton.DoClick = function()
+		self:CreateColorEditor()
 	end
 
 	return container
 end
 
-function PANEL:ColorEditor( parent, panel )
-	local container = vgui.Create( "DFrame", parent )
+function PANEL:CreateColorEditor()
+	local container = vgui.Create( "DFrame", self )
 	container:SetSize( 250, 200 )
-	local parentX, parentY = parent:GetPos()
+
+	local parentX, parentY = self:GetPos()
 	container:SetPos( parentX - 280, parentY )
 	container:SetTitle( "Model Colour Editor" )
 	container:SetIcon("icon16/color_wheel.png")
@@ -106,8 +127,8 @@ function PANEL:ColorEditor( parent, panel )
 	return container
 end
 
-function PANEL:SettingsTab( parent )
-	local container = vgui.Create( "DPanel", parent )
+function PANEL:CreateSettings()
+	local container = vgui.Create( "DPanel", self )
 
 	local serverConvars = {
 		["unity_enablehardcore"] = "Enable Hardcore",
@@ -190,8 +211,8 @@ function PANEL:SettingsTab( parent )
 	return container
 end
 
-function PANEL:HelpTab( parent )
-	local container = vgui.Create( "DPanel", parent )
+function PANEL:CreateHelp()
+	local container = vgui.Create( "DPanel", self )
 
 	local featuresHeader = vgui.Create( "DLabel", container )
 	featuresHeader:SetText( "Information" )
@@ -250,7 +271,7 @@ All weapons have the same ammo caps as Half-Life 2.]])
 	}
 
 	local gamemodeDetails = vgui.Create( "DLabel", container )
-	gamemodeDetails:SetText( string.format("Difficulty: %s %s\nVersion: %s\nGamemode by %s", difficultyTranslation[game.GetSkillLevel()], cvars.Bool("unity_enablehardcore", false) and "(Hardcore)" or "" , GM.Version, GM.Author) )
+	gamemodeDetails:SetText( string.format("Difficulty: %s %s\nVersion: %s\nGamemode by %s", difficultyTranslation[cvars.Number("unity_difficulty", 2)], cvars.Bool("unity_enablehardcore", false) and "(Hardcore)" or "" , GAMEMODE.Version, GAMEMODE.Author) )
 	gamemodeDetails:SetColor( Color(0, 0, 0) )
 	gamemodeDetails:SetAutoStretchVertical( true )
 	gamemodeDetails:SetFont("Default")
@@ -260,28 +281,10 @@ All weapons have the same ammo caps as Half-Life 2.]])
 	return container
 end
 
-function PANEL:Populate()
-	local container = vgui.Create( "DFrame" )
-	container:SetSize( 750, 500 )
-	container:Center()
-	container:SetTitle( GM.Name )
-	container:SetIcon( "icon16/unitylogo.png" )
-	container:SetDraggable( true )
-	container:ShowCloseButton( true )
-	container:MakePopup()
-
-	local propertySheet = vgui.Create( "DPropertySheet", container )
-	propertySheet:Dock( FILL )
-
-	propertySheet:AddSheet( "Customization", self:CustomizationTab( container ), "icon16/user.png" )
-	propertySheet:AddSheet( "Settings", self:SettingsTab( container ), "icon16/wrench.png" )
-	propertySheet:AddSheet( "Help", self:HelpTab( container ), "icon16/help.png" )
-end
-
-vgui.Register("unityMenu", PANEL, "Panel")
+vgui.Register("UnityMenu", PANEL, "DFrame")
 
 concommand.Add("unity_menu", function( client ) 
-	if !gui.IsGameUIVisible() then
-		vgui.Create("unityMenu"):Populate()
+	if (!gui.IsGameUIVisible()) then
+		vgui.Create("UnityMenu")
 	end
 end)
