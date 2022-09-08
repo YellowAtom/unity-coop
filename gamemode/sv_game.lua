@@ -2,8 +2,8 @@
 GAME_ENDING = false
 
 cvars.AddChangeCallback("unity_difficulty", function( convar, oldValue, newValue )
-	local convar = GetConVar(convar)
-	local newValue = tonumber(newValue)
+	convar = GetConVar(convar)
+	newValue = tonumber(newValue)
 
 	if (newValue > 3) then
 		convar:SetInt(3)
@@ -42,8 +42,8 @@ function GM:GameOver()
 
 	// Clean up players for next game.
 	for k, v in ipairs(player.GetAll()) do
-		v:ScreenFade( SCREENFADE.OUT, color_black, 6, 4 ) 
-		v:ConCommand( "play music/stingers/industrial_suspense".. math.random(1, 2) .. ".wav" )
+		v:ScreenFade( SCREENFADE.OUT, color_black, 6, 4 )
+		v:ConCommand( "play music/stingers/industrial_suspense" .. math.random(1, 2) .. ".wav" )
 		v:StripWeapons()
 		v:StripAmmo()
 
@@ -51,10 +51,10 @@ function GM:GameOver()
 	end
 
 	// Wait for the screenfade to finish before cleaning up the map and stats.
-	timer.Simple( 10, function() 
-		game.CleanUpMap( false, {} ) 
+	timer.Simple( 10, function()
+		game.CleanUpMap( false, {} )
 
-		timer.Simple( 0.2, function() 
+		timer.Simple( 0.2, function()
 			for k, v in ipairs(player.GetAll()) do
 				v:Spawn()
 
@@ -63,7 +63,7 @@ function GM:GameOver()
 				// waiting for the level to reset.
 				v:SetDeaths(0)
 				v:SetFrags(0)
-			end 
+			end
 
 			GAME_ENDING = nil
 		end)

@@ -66,7 +66,7 @@ function GM:DoPlayerDeath( client, attacker, dmginfo )
 
 	// Attacker losses score for killing ally.
 	if ( attacker:IsValid() and attacker:IsPlayer() and attacker != client ) then
-		attacker:AddFrags( -5 ) 
+		attacker:AddFrags( -5 )
 	end
 
 	// If all players are now dead on this death then begin failure state.
@@ -98,13 +98,13 @@ function GM:DoPlayerDeath( client, attacker, dmginfo )
 end
 
 function GM:PlayerDeathThink( client )
-	if client.respawnTime and client.respawnTime < CurTime() then		
+	if client.respawnTime and client.respawnTime < CurTime() then
 		local alivePlayers = self:GetAlivePlayers()
 		local target = alivePlayers[math.random(#alivePlayers)]
 
 		client:Spawn()
 
-		if (target) then 
+		if (target) then
 			client:SetPos(target:GetPos())
 		end
 	end
@@ -125,14 +125,14 @@ function GM:PlayerDeathSound( client )
 end
 
 function GM:OnNPCKilled( npc, attacker, inflictor )
-	if (attacker:IsPlayer()) then 
+	if (attacker:IsPlayer()) then
 		attacker:AddFrags( 1 )
-	end 
+	end
 end
 
 function GM:PlayerNoClip(client, desiredNoClipState)
 	if ( client:IsAdmin() or !desiredNoClipState ) and client:Alive() then
-		return true 
+		return true
 	end
 
 	return false
@@ -142,32 +142,30 @@ function GM:KeyPress( client, key )
 	if (!client:Alive() and client:GetMoveType() == MOVETYPE_OBSERVER) then
 		if (key == IN_ATTACK) then
 			local alivePlayers = self:GetAlivePlayers()
-	
+
 			if #alivePlayers < 1 then return end
-	
+
 			local currentTarget = client:GetObserverTarget()
 			local target = nil
-	
+
 			if IsValid( currentTarget ) then
 				for k, v in ipairs( alivePlayers ) do
 					if v == currentTarget then
-						target = (k == #alivePlayers) and alivePlayers[1] or alivePlayers[k+1] 
+						target = (k == #alivePlayers) and alivePlayers[1] or alivePlayers[k + 1]
 					end
 				end
 			end
-	
-			if not IsValid( target ) then
+
+			if !IsValid( target ) then
 				target = alivePlayers[math.random(#alivePlayers)]
 			end
-	
+
 			client:Spectate( OBS_MODE_CHASE )
 			client:SpectateEntity( target )
 		end
-	
-		if (key == IN_JUMP) then
-			if ( client:GetObserverMode() != OBS_MODE_ROAMING) then
-				client:Spectate( OBS_MODE_ROAMING )
-			end
+
+		if (key == IN_JUMP and client:GetObserverMode() != OBS_MODE_ROAMING) then
+			client:Spectate( OBS_MODE_ROAMING )
 		end
 	end
 end
@@ -204,7 +202,7 @@ function playerMeta:DropAmmo( ammoType, ammoAmount )
 end
 
 function playerMeta:SetPlayerSpectating()
-	timer.Simple(0.2, function() 
+	timer.Simple(0.2, function()
 		local alivePlayers = GAMEMODE:GetAlivePlayers()
 		local target = alivePlayers[math.random(#alivePlayers)]
 
@@ -212,7 +210,7 @@ function playerMeta:SetPlayerSpectating()
 			self:Spectate( OBS_MODE_CHASE )
 			self:SpectateEntity( target )
 		else
-			self:Spectate( OBS_MODE_ROAMING ) 
+			self:Spectate( OBS_MODE_ROAMING )
 		end
 	end)
 end

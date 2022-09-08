@@ -1,7 +1,7 @@
 
 // So you don't have to suicide for model updates. 
 concommand.Add("unity_updatemodel", function( client, cmd, args, argStr )
-    if IsValid(client) then
+		if IsValid(client) then
 		client:SetModel( client:GetInfo("unity_playermodel") )
 		client:SetPlayerColor( Vector(client:GetInfo("unity_playercolor")) )
 		client:SetupHands()
@@ -30,10 +30,8 @@ concommand.Add("unity_bringall", function( client, cmd, args )
 	if !client:IsAdmin() then return end
 
 	for k, v in ipairs(player.GetAll()) do
-		if(client != v) then
-			if(v:IsPlayer() and v:Alive()) then
-				v:SetPos(client:GetPos())
-			end
+		if (client != v and v:IsPlayer() and v:Alive()) then
+			v:SetPos(client:GetPos())
 		end
 	end
 

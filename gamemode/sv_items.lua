@@ -1,57 +1,57 @@
 
 GM.AmmoTypeInfo = {
-	["pistol"] = { 
-		class = "weapon_pistol", 
-		model = "models/items/boxsrounds.mdl", 
-		entity = "item_ammo_pistol" 
+	["pistol"] = {
+		class = "weapon_pistol",
+		model = "models/items/boxsrounds.mdl",
+		entity = "item_ammo_pistol"
 	},
-	["smg1"] = { 
-		class = "weapon_smg1", 
-		model = "models/items/boxmrounds.mdl", 
-		entity = "item_ammo_smg1" 
+	["smg1"] = {
+		class = "weapon_smg1",
+		model = "models/items/boxmrounds.mdl",
+		entity = "item_ammo_smg1"
 	},
-	["smg1_grenade"] = { 
-		class = "weapon_smg1", 
-		model = "models/items/ar2_grenade.mdl", 
-		entity = "item_ammo_smg1_grenade" 
+	["smg1_grenade"] = {
+		class = "weapon_smg1",
+		model = "models/items/ar2_grenade.mdl",
+		entity = "item_ammo_smg1_grenade"
 	},
-	["buckshot"] = { 
-		class = "weapon_shotgun", 
-		model = "models/items/boxbuckshot.mdl", 
-		entity = "item_box_buckshot" 
+	["buckshot"] = {
+		class = "weapon_shotgun",
+		model = "models/items/boxbuckshot.mdl",
+		entity = "item_box_buckshot"
 	},
-	["ar2"] = { 
-		class = "weapon_ar2", 
-		model = "models/items/combine_rifle_cartridge01.mdl", 
-		entity = "item_ammo_ar2" 
+	["ar2"] = {
+		class = "weapon_ar2",
+		model = "models/items/combine_rifle_cartridge01.mdl",
+		entity = "item_ammo_ar2"
 	},
-	["ar2altfire"] = { 
-		class = "weapon_ar2", 
-		model = "models/items/combine_rifle_ammo01.mdl", 
-		entity = "item_ammo_ar2_altfire" 
+	["ar2altfire"] = {
+		class = "weapon_ar2",
+		model = "models/items/combine_rifle_ammo01.mdl",
+		entity = "item_ammo_ar2_altfire"
 	},
-	["357"] = { 
-		class = "weapon_357", 
-		model = "models/items/357ammo.mdl", 
-		entity = "item_ammo_357" 
+	["357"] = {
+		class = "weapon_357",
+		model = "models/items/357ammo.mdl",
+		entity = "item_ammo_357"
 	},
-	["xbowbolt"] = { 
-		class = "weapon_crossbow", 
-		model = "models/items/crossbowrounds.mdl", 
-		entity = "item_ammo_crossbow" 
+	["xbowbolt"] = {
+		class = "weapon_crossbow",
+		model = "models/items/crossbowrounds.mdl",
+		entity = "item_ammo_crossbow"
 	},
-	["rpg_round"] = { 
-		class = "weapon_rpg", 
-		model = "models/weapons/w_missile_closed.mdl", 
-		entity = "item_rpg_round" 
+	["rpg_round"] = {
+		class = "weapon_rpg",
+		model = "models/weapons/w_missile_closed.mdl",
+		entity = "item_rpg_round"
 	},
-	["grenade"] = { 
-		class = "weapon_frag", 
-		model = "models/items/grenadeammo.mdl" 
+	["grenade"] = {
+		class = "weapon_frag",
+		model = "models/items/grenadeammo.mdl"
 	},
-	["slam"] = { 
-		class = "weapon_slam", 
-		model = "models/weapons/w_slam.mdl" 
+	["slam"] = {
+		class = "weapon_slam",
+		model = "models/weapons/w_slam.mdl"
 	}
 }
 
@@ -61,13 +61,13 @@ local STRIP_AMMO_BLACKLIST = {
 	["weapon_slam"] = true
 }
 
-function GM:PlayerCanPickupWeapon( client, weapon )
+function GM:PlayerCanPickupWeapon( client,weapon )
 	if client.unityWeaponPickupDelay and client.unityWeaponPickupDelay > CurTime() then return false end
 
 	local weaponClass = weapon:GetClass()
 
-    if (client:HasWeapon(weaponClass) and !STRIP_AMMO_BLACKLIST[weaponClass]) then
-		client:GiveAmmo( weapon:Clip1(), weapon:GetPrimaryAmmoType() )
+	if (client:HasWeapon(weaponClass) and !STRIP_AMMO_BLACKLIST[weaponClass]) then
+		client:GiveAmmo( weapon:Clip1(),weapon:GetPrimaryAmmoType() )
 		weapon:SetClip1( 0 )
 
 		return false
@@ -76,16 +76,14 @@ function GM:PlayerCanPickupWeapon( client, weapon )
 	return true
 end
 
-function GM:PlayerCanPickupItem( client, entity )
+function GM:PlayerCanPickupItem( client,entity )
 	if (client.unityItemPickupDelay and client.unityItemPickupDelay > CurTime()) then return false end
 
 	local entClass = entity:GetClass()
 
-	for k, v in pairs(self.AmmoTypeInfo) do
-		if (v.entity == entClass) then
-			if (!client:HasWeapon(v.class) and !STRIP_AMMO_BLACKLIST[v.class]) then
-				return false
-			end
+	for k,v in pairs(self.AmmoTypeInfo) do
+		if (v.entity == entClass and !client:HasWeapon(v.class) and !STRIP_AMMO_BLACKLIST[v.class]) then
+			return false
 		end
 	end
 
@@ -100,13 +98,13 @@ function GM:PlayerCanPickupItem( client, entity )
 	return true
 end
 
-function GM:PlayerAmmoChanged( client, ammoID, oldCount, newCount )
+function GM:PlayerAmmoChanged( client,ammoID,oldCount,newCount )
 	local ammoCap = game.GetAmmoMax( ammoID )
 	local ammoType = string.lower( game.GetAmmoName( ammoID ) or "" )
 	local dif = newCount - ammoCap
 
 	if (dif > 0) then
-		local entity = client:DropAmmo( ammoType, dif )
+		local entity = client:DropAmmo( ammoType,dif )
 		local physObj = entity:GetPhysicsObject()
 
 		if IsValid( physObj ) then
@@ -116,14 +114,14 @@ function GM:PlayerAmmoChanged( client, ammoID, oldCount, newCount )
 end
 
 // Allows for extra ammo types.
-function GM:AddAmmoType( ammoType, weaponClass, entityModel, ammoEntity )
+function GM:AddAmmoType( ammoType,weaponClass,entityModel,ammoEntity )
 	self.AmmoTypeInfo[ammoType].class = weaponClass
 	self.AmmoTypeInfo[ammoType].model = entityModel
 	self.AmmoTypeInfo[ammoType].entity = ammoEntity or nil
 end
 
-concommand.Add("unity_dropweapon", function( client ) 
-    local weapon = client:GetActiveWeapon()
+concommand.Add("unity_dropweapon",function( client )
+	local weapon = client:GetActiveWeapon()
 
 	if ( IsValid( weapon ) ) then
 		local weaponClass = weapon:GetClass()
@@ -139,7 +137,7 @@ concommand.Add("unity_dropweapon", function( client )
 
 		client:StripWeapon( weaponClass )
 
-		entity:SetPos( client:GetPos() + Vector(0, 0, 50) )
+		entity:SetPos( client:GetPos() + Vector(0,0,50) )
 		entity:Spawn()
 
 		local physObj = entity:GetPhysicsObject()
@@ -155,8 +153,8 @@ concommand.Add("unity_dropweapon", function( client )
 	end
 end)
 
-concommand.Add("unity_dropammo", function( client, cmd, args ) 
-    local weapon = client:GetActiveWeapon()
+concommand.Add("unity_dropammo",function( client,cmd,args )
+	local weapon = client:GetActiveWeapon()
 
 	if ( IsValid( weapon ) and weapon:GetClass() != "weapon_frag" ) then
 		local ammoType = weapon:GetPrimaryAmmoType()
@@ -164,7 +162,7 @@ concommand.Add("unity_dropammo", function( client, cmd, args )
 		local ammoCount = client:GetAmmoCount( ammoType )
 		local dropAmount = tonumber( args[1] )
 
-		if not dropAmount then
+		if !dropAmount then
 			dropAmount = weapon:GetMaxClip1()
 		end
 
@@ -174,7 +172,7 @@ concommand.Add("unity_dropammo", function( client, cmd, args )
 
 		if ammoCount <= 0 or dropAmount == 0 then return end
 
-		local entity = client:DropAmmo( ammoTypeName, dropAmount )
+		local entity = client:DropAmmo( ammoTypeName,dropAmount )
 
 		local physObj = entity:GetPhysicsObject()
 

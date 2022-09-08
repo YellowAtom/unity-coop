@@ -43,7 +43,7 @@ function PANEL:CreateCustomization()
 	end
 
 	function self.modelPanel.Entity:GetPlayerColor()
-		return Vector( GetConVarString( "unity_playercolor" ) )
+		return Vector( cvars.String( "unity_playercolor" ) )
 	end
 
 	local IconScrollPanel = vgui.Create( "DScrollPanel", container )
@@ -70,7 +70,7 @@ function PANEL:CreateCustomization()
 			self.modelPanel:SetModel( v )
 
 			function self.modelPanel.Entity:GetPlayerColor()
-				return Vector( GetConVarString( "unity_playercolor" ) )
+				return Vector( cvars.String( "unity_playercolor" ) )
 			end
 		end
 	end
@@ -118,7 +118,7 @@ function PANEL:CreateColorEditor()
 	playerColorMixer:SetAlphaBar( false )
 	playerColorMixer:SetPalette( false )
 
-	playerColorMixer:SetVector( Vector( GetConVarString( "unity_playercolor" ) ) )
+	playerColorMixer:SetVector( Vector( cvars.String( "unity_playercolor" ) ) )
 
 	function playerColorMixer:ValueChanged()
 		LocalPlayer():ConCommand("unity_playercolor " .. tostring( playerColorMixer:GetVector()))
@@ -165,7 +165,7 @@ function PANEL:CreateSettings()
 		convarControlDifficulty:SetMin( 1 )
 		convarControlDifficulty:SetMax( 3 )
 		convarControlDifficulty:SetDecimals( 0 )
-		convarControlDifficulty:SetValue( difficultyConvar:GetInt() )  
+		convarControlDifficulty:SetValue( difficultyConvar:GetInt() )
 		convarControlDifficulty:SetTooltip( difficultyConvar:GetHelpText() )
 		convarControlDifficulty:SetConVar( "unity_difficulty" )
 
@@ -183,7 +183,7 @@ function PANEL:CreateSettings()
 		convarControlRTime:SetMin( 0 )
 		convarControlRTime:SetMax( 300 )
 		convarControlRTime:SetDecimals( 0 )
-		convarControlRTime:SetValue( respawnTimeConvar:GetInt() )  
+		convarControlRTime:SetValue( respawnTimeConvar:GetInt() )
 		convarControlRTime:SetTooltip( respawnTimeConvar:GetHelpText() )
 		convarControlRTime:SetConVar( "unity_autorespawntime" )
 
@@ -277,13 +277,13 @@ All weapons have the same ammo caps as Half-Life 2.]])
 	gamemodeDetails:SetFont("Default")
 	gamemodeDetails:Dock( BOTTOM )
 	gamemodeDetails:DockMargin(5, 0, 0, 5)
-	
+
 	return container
 end
 
 vgui.Register("UnityMenu", PANEL, "DFrame")
 
-concommand.Add("unity_menu", function( client ) 
+concommand.Add("unity_menu", function( client )
 	if (!gui.IsGameUIVisible()) then
 		vgui.Create("UnityMenu")
 	end
