@@ -40,7 +40,7 @@ end
 function GM:GameOver()
 	GAME_ENDING = true
 
-	// Clean up players for next game.
+	-- Clean up players for next game.
 	for k, v in ipairs(player.GetAll()) do
 		v:ScreenFade( SCREENFADE.OUT, color_black, 6, 4 )
 		v:ConCommand( "play music/stingers/industrial_suspense" .. math.random(1, 2) .. ".wav" )
@@ -50,7 +50,7 @@ function GM:GameOver()
 		v.respawnTime = nil
 	end
 
-	// Wait for the screenfade to finish before cleaning up the map and stats.
+	-- Wait for the screenfade to finish before cleaning up the map and stats.
 	timer.Simple( 10, function()
 		game.CleanUpMap( false, {} )
 
@@ -58,9 +58,9 @@ function GM:GameOver()
 			for k, v in ipairs(player.GetAll()) do
 				v:Spawn()
 
-				// Maybe scoreboard shouldn't reset on failure, unsure.
-				// We pause before resetting it so players can check it while
-				// waiting for the level to reset.
+				-- Maybe scoreboard shouldn't reset on failure, unsure.
+				-- We pause before resetting it so players can check it while
+				-- waiting for the level to reset.
 				v:SetDeaths(0)
 				v:SetFrags(0)
 			end

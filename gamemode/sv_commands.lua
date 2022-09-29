@@ -1,5 +1,5 @@
 
-// So you don't have to suicide for model updates. 
+-- So you don't have to suicide for model updates. 
 concommand.Add("unity_updatemodel", function( client, cmd, args, argStr )
 		if IsValid(client) then
 		client:SetModel( client:GetInfo("unity_playermodel") )

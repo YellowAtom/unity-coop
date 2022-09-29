@@ -13,7 +13,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Int", 0, "AmmoAmount")
 	self:NetworkVar("Bool", 0, "AmmoSpent")
 
-	// Default Values
+	-- Default Values
 	self:SetAmmoType( "smg1" )
 	self:SetAmmoAmount( 45 )
 	self:SetAmmoSpent( false )

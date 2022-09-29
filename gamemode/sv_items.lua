@@ -55,7 +55,7 @@ GM.AmmoTypeInfo = {
 	}
 }
 
-// These weapons do not work with ammo stripping.
+-- These weapons do not work with ammo stripping.
 local STRIP_AMMO_BLACKLIST = {
 	["weapon_frag"] = true,
 	["weapon_slam"] = true
@@ -113,7 +113,7 @@ function GM:PlayerAmmoChanged( client,ammoID,oldCount,newCount )
 	end
 end
 
-// Allows for extra ammo types.
+-- Allows for extra ammo types.
 function GM:AddAmmoType( ammoType,weaponClass,entityModel,ammoEntity )
 	self.AmmoTypeInfo[ammoType].class = weaponClass
 	self.AmmoTypeInfo[ammoType].model = entityModel

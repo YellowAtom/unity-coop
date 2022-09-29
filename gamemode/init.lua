@@ -20,7 +20,7 @@ function GM:PlayerShouldTakeDamage( client, attacker )
 end
 
 function GM:GetFallDamage( client, fallSpeed )
-	return ( fallSpeed - 526.5 ) * ( 100 / 396 ) // The Source SDK value.
+	return ( fallSpeed - 526.5 ) * ( 100 / 396 ) -- The Source SDK value.
 end
 
 function GM:PlayerInitialSpawn( client, transition )
@@ -40,13 +40,13 @@ function GM:PlayerSpawn( client, transition )
 
 	client:UnSpectate()
 
-	// Sets to the HL2 movement values.
+	-- Sets to the HL2 movement values.
 	client:SetSlowWalkSpeed( 150 )
 	client:SetWalkSpeed( 190 )
 	client:SetRunSpeed( 320 )
 	client:SetCrouchedWalkSpeed( 0.33333333 )
 
-	// Have to enable flashlight in base gamemode.
+	-- Have to enable flashlight in base gamemode.
 	client:AllowFlashlight( true )
 
 	client:SetCollisionGroup( COLLISION_GROUP_PASSABLE_DOOR )
@@ -64,21 +64,21 @@ function GM:DoPlayerDeath( client, attacker, dmginfo )
 		v:ChatPrint( "[UNITY] " .. client:GetName() .. " has died!" )
 	end
 
-	// Attacker losses score for killing ally.
+	-- Attacker losses score for killing ally.
 	if ( attacker:IsValid() and attacker:IsPlayer() and attacker != client ) then
 		attacker:AddFrags( -5 )
 	end
 
-	// If all players are now dead on this death then begin failure state.
+	-- If all players are now dead on this death then begin failure state.
 	if ( #self:GetAlivePlayers() < 1 and cvars.Bool("unity_enablehardcore", false) ) then
 		self:GameOver()
 	else
 		client:SetPlayerSpectating()
 	end
 
-	// Drop Weapons
+	-- Drop Weapons
 	for k, v in ipairs(client:GetWeapons()) do
-		// Don't drop the gravity gun if we gave it for free!
+		-- Don't drop the gravity gun if we gave it for free!
 		if cvars.Bool("unity_givegravitygun", false) and v == "weapon_physcannon" then
 			continue
 		end
@@ -86,7 +86,7 @@ function GM:DoPlayerDeath( client, attacker, dmginfo )
 		client:DropWeapon(v, nil, client:GetVelocity())
 	end
 
-	// Drop Ammo
+	-- Drop Ammo
 	for k, v in pairs(client:GetAmmo()) do
 		local ammoType = string.lower(game.GetAmmoName(k) or "")
 
@@ -215,7 +215,7 @@ function playerMeta:SetPlayerSpectating()
 	end)
 end
 
-// Gamemode Controls
+-- Gamemode Controls
 
 function GM:ShowHelp( client )
 	client:ConCommand("unity_menu")
