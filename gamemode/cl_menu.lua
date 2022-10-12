@@ -268,9 +268,3 @@ All weapons have the same ammo caps as Half-Life 2.]])
 end
 
 vgui.Register("UnityMenu", PANEL, "DFrame")
-
-concommand.Add("unity_menu", function(client)
-	if not gui.IsGameUIVisible() then
-		vgui.Create("UnityMenu")
-	end
-end)
