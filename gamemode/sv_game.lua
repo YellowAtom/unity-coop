@@ -173,16 +173,13 @@ end
 
 -- Gamemode Controls
 function GM:ShowHelp(client)
-	client:ConCommand("unity_menu")
 end
 
 function GM:ShowTeam(client)
 end
 
 function GM:ShowSpare1(client)
-	client:ConCommand("unity_dropweapon")
 end
 
 function GM:ShowSpare2(client)
-	client:ConCommand("unity_dropammo")
 end
