@@ -29,7 +29,33 @@ function GM:InitPostEntity()
 			entity:SetAngles(angles)
 			entity:SetAmmoType(info.ammoType)
 			entity:SetAmmoAmount(istable(info.ammoAmount) and info.ammoAmount[cvars.Number("unity_difficulty", 2)] or info.ammoAmount)
+			entity:Spawn()
 		end
+	end
+end
+
+function GM:OnEntityCreated(entity)
+	local info = self.AmmoEntInfo[entity:GetClass()]
+
+	if info and IsValid(entity) then
+		timer.Simple(0.25, function()
+			local model = entity:GetModel()
+			local pos = entity:GetPos()
+			local angles = entity:GetAngles()
+			local velocity = entity:GetVelocity()
+
+			SafeRemoveEntity(entity)
+
+			local entity = ents.Create("unity_ammo")
+			entity:SetModel(model)
+			entity:SetPos(pos)
+			entity:SetAngles(angles)
+			entity:SetVelocity(velocity)
+			entity:SetAmmoType(info.ammoType)
+			entity:SetAmmoAmount(istable(info.ammoAmount) and info.ammoAmount[cvars.Number("unity_difficulty", 2)] or info.ammoAmount)
+			entity:Spawn()
+		end)
+
 	end
 end
 
