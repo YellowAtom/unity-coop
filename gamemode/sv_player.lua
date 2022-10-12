@@ -1,20 +1,6 @@
 
 local playerMeta = FindMetaTable("Player")
 
-function playerMeta:DropAmmo(ammoType, ammoAmount)
-	local entity = ents.Create("unity_ammo")
-	if not IsValid(entity) then return end
-	entity:SetAmmoAmount(ammoAmount)
-	entity:SetAmmoType(ammoType)
-	entity:SetModel(GAMEMODE.AmmoTypeInfo[ammoType].model or "models/items/boxmrounds.mdl")
-	entity:SetPos(self:GetPos() + Vector(0, 0, 50))
-	entity:SetAngles(self:GetAngles())
-	entity:Spawn()
-	self:RemoveAmmo(ammoAmount, ammoType)
-
-	return entity
-end
-
 function playerMeta:SetPlayerSpectating()
 	timer.Simple(0.2, function()
 		local alivePlayers = GAMEMODE:GetAlivePlayers()

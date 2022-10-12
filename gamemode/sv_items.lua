@@ -1,57 +1,129 @@
 
 GM.AmmoTypeInfo = {
 	["pistol"] = {
-		class = "weapon_pistol",
+		weapon = "weapon_pistol",
 		model = "models/items/boxsrounds.mdl",
 		entity = "item_ammo_pistol"
 	},
 	["smg1"] = {
-		class = "weapon_smg1",
+		weapon = "weapon_smg1",
 		model = "models/items/boxmrounds.mdl",
 		entity = "item_ammo_smg1"
 	},
 	["smg1_grenade"] = {
-		class = "weapon_smg1",
+		weapon = "weapon_smg1",
 		model = "models/items/ar2_grenade.mdl",
 		entity = "item_ammo_smg1_grenade"
 	},
 	["buckshot"] = {
-		class = "weapon_shotgun",
+		weapon = "weapon_shotgun",
 		model = "models/items/boxbuckshot.mdl",
 		entity = "item_box_buckshot"
 	},
 	["ar2"] = {
-		class = "weapon_ar2",
+		weapon = "weapon_ar2",
 		model = "models/items/combine_rifle_cartridge01.mdl",
 		entity = "item_ammo_ar2"
 	},
 	["ar2altfire"] = {
-		class = "weapon_ar2",
+		weapon = "weapon_ar2",
 		model = "models/items/combine_rifle_ammo01.mdl",
 		entity = "item_ammo_ar2_altfire"
 	},
 	["357"] = {
-		class = "weapon_357",
+		weapon = "weapon_357",
 		model = "models/items/357ammo.mdl",
 		entity = "item_ammo_357"
 	},
 	["xbowbolt"] = {
-		class = "weapon_crossbow",
+		weapon = "weapon_crossbow",
 		model = "models/items/crossbowrounds.mdl",
 		entity = "item_ammo_crossbow"
 	},
 	["rpg_round"] = {
-		class = "weapon_rpg",
+		weapon = "weapon_rpg",
 		model = "models/weapons/w_missile_closed.mdl",
 		entity = "item_rpg_round"
 	},
 	["grenade"] = {
-		class = "weapon_frag",
+		weapon = "weapon_frag",
 		model = "models/items/grenadeammo.mdl"
 	},
 	["slam"] = {
-		class = "weapon_slam",
+		weapon = "weapon_slam",
 		model = "models/weapons/w_slam.mdl"
+	}
+}
+
+GM.AmmoEntInfo = {
+	["item_ammo_pistol"] = {
+		model = "models/items/boxsrounds.mdl",
+		ammoType = "pistol",
+		ammoAmount = {
+			24,
+			20,
+			12
+		}
+	},
+	["item_ammo_smg1"] = {
+		model = "models/items/boxmrounds.mdl",
+		ammoType = "smg1",
+		ammoAmount = {
+			54,
+			45,
+			27
+		}
+	},
+	["item_ammo_smg1_grenade"] = {
+		model = "models/items/ar2_grenade.mdl",
+		ammoType = "smg1_grenade",
+		ammoAmount = 1
+	},
+	["item_box_buckshot"] = {
+		model = "models/items/boxbuckshot.mdl",
+		ammoType = "buckshot",
+		ammoAmount = {
+			24,
+			20,
+			12
+		}
+	},
+	["item_ammo_ar2"] = {
+		model = "models/items/combine_rifle_cartridge01.mdl",
+		ammoType = "ar2",
+		ammoAmount = {
+			24,
+			20,
+			12
+		}
+	},
+	["item_ammo_ar2_altfire"] = {
+		model = "models/items/combine_rifle_ammo01.mdl",
+		ammoType = "ar2altfire",
+		ammoAmount = 1
+	},
+	["item_ammo_357"] = {
+		model = "models/items/357ammo.mdl",
+		ammoType = "357",
+		ammoAmount = {
+			7,
+			6,
+			3
+		}
+	},
+	["item_ammo_crossbow"] = {
+		model = "models/items/crossbowrounds.mdl",
+		ammoType = "xbowbolt",
+		ammoAmount = {
+			7,
+			6,
+			3
+		}
+	},
+	["item_rpg_round"] = {
+		model = "models/weapons/w_missile_closed.mdl",
+		ammoType = "weapon_rpg",
+		ammoAmount = 1
 	}
 }
 
@@ -81,12 +153,9 @@ function GM:PlayerCanPickupItem(client, entity)
 
 	local entClass = entity:GetClass()
 
-	for k, v in pairs(self.AmmoTypeInfo) do
-		if v.entity == entClass and not client:HasWeapon(v.class) and not STRIP_AMMO_BLACKLIST[v.class] then return false end
-	end
-
 	if entClass == "unity_ammo" then
-		local weaponClass = self.AmmoTypeInfo[entity:GetAmmoType()].class
+		local weaponClass = self.AmmoTypeInfo[entity:GetAmmoType()].weapon
+
 		if not client:HasWeapon(weaponClass) and not STRIP_AMMO_BLACKLIST[weaponClass] then return false end
 	end
 
@@ -108,19 +177,27 @@ function GM:PlayerAmmoChanged(client, ammoID, oldCount, newCount)
 	end
 end
 
--- Allows for extra ammo types.
-function GM:AddAmmoType(ammoType, weaponClass, entityModel, ammoEntity)
-	self.AmmoTypeInfo[ammoType].class = weaponClass
-	self.AmmoTypeInfo[ammoType].model = entityModel
-	self.AmmoTypeInfo[ammoType].entity = ammoEntity or nil
-end
-
 concommand.Add("unity_dropweapon", function(client)
 	local weapon = client:GetActiveWeapon()
 
 	if IsValid(weapon) then
 		local weaponClass = weapon:GetClass()
+
 		if cvars.Bool("unity_givegravitygun", false) and weaponClass == "weapon_physcannon" then return end
+
+		local ammoType = weapon:GetPrimaryAmmoType()
+		local ammoCount = client:GetAmmoCount(ammoType)
+
+		if ammoCount > 0 then
+			timer.Simple(0.1, function()
+				local ammoEnt = client:DropAmmo(string.lower(game.GetAmmoName(ammoType) or ""), ammoCount)
+				local ammoEntPhys = ammoEnt:GetPhysicsObject()
+
+				if IsValid(ammoEntPhys) then
+					ammoEntPhys:SetVelocity(client:GetAimVector() * 200)
+				end
+			end)
+		end
 
 		local entity = ents.Create(weaponClass)
 		if not IsValid(entity) then return end
@@ -160,14 +237,34 @@ concommand.Add("unity_dropammo", function(client, cmd, args)
 			dropAmount = ammoCount
 		end
 
-		if ammoCount <= 0 or dropAmount == 0 then return end
-		local entity = client:DropAmmo(ammoTypeName, dropAmount)
-		local physObj = entity:GetPhysicsObject()
+		if ammoCount > 0 or dropAmount ~= 0 then
+			local entity = client:DropAmmo(ammoTypeName, dropAmount)
+			local physObj = entity:GetPhysicsObject()
 
-		if IsValid(physObj) then
-			physObj:SetVelocity(client:GetAimVector() * 200)
+			if IsValid(physObj) then
+				physObj:SetVelocity(client:GetAimVector() * 200)
+			end
 		end
 
 		client.unityItemPickupDelay = CurTime() + 1.5
 	end
 end)
+
+local playerMeta = FindMetaTable("Player")
+
+function playerMeta:DropAmmo(ammoType, ammoAmount)
+	local entity = ents.Create("unity_ammo")
+
+	if IsValid(entity) and ammoType ~= "" then
+		entity:SetAmmoAmount(ammoAmount)
+		entity:SetAmmoType(ammoType)
+		entity:SetModel(GAMEMODE.AmmoTypeInfo[ammoType].model or "models/items/boxmrounds.mdl")
+		entity:SetPos(self:GetPos() + Vector(0, 0, 50))
+		entity:SetAngles(self:GetAngles())
+		entity:Spawn()
+
+		self:RemoveAmmo(ammoAmount, ammoType)
+	end
+
+	return entity
+end

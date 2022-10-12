@@ -12,6 +12,27 @@ cvars.AddChangeCallback("unity_difficulty", function(convar, oldValue, newValue)
 	end
 end)
 
+function GM:InitPostEntity()
+	for _, v in ipairs(ents.GetAll()) do
+		local info = self.AmmoEntInfo[v:GetClass()]
+
+		if info then
+			local model = v:GetModel()
+			local pos = v:GetPos()
+			local angles = v:GetAngles()
+
+			SafeRemoveEntity(v)
+
+			local entity = ents.Create("unity_ammo")
+			entity:SetModel(model)
+			entity:SetPos(pos)
+			entity:SetAngles(angles)
+			entity:SetAmmoType(info.ammoType)
+			entity:SetAmmoAmount(istable(info.ammoAmount) and info.ammoAmount[cvars.Number("unity_difficulty", 2)] or info.ammoAmount)
+		end
+	end
+end
+
 function GM:OnNPCKilled(npc, attacker, inflictor)
 	if attacker:IsPlayer() then
 		attacker:AddFrags(1)
