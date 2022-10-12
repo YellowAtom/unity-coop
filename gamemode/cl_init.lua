@@ -16,6 +16,10 @@ function GM:PlayerBindPress(client, bind, pressed, code)
 	elseif bind == "gm_showspare1" then
 		RunConsoleCommand("unity_dropweapon")
 	elseif bind == "gm_showspare2" then
-		RunConsoleCommand("unity_dropammo")
+		if client:KeyDown(IN_RELOAD) then
+			RunConsoleCommand("unity_dropammo", "1")
+		else
+			RunConsoleCommand("unity_dropammo")
+		end
 	end
 end

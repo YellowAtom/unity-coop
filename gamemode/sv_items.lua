@@ -177,7 +177,7 @@ function GM:PlayerAmmoChanged(client, ammoID, oldCount, newCount)
 	end
 end
 
-concommand.Add("unity_dropweapon", function(client)
+concommand.Add("unity_dropweapon", function(client, cmd, args, argStr)
 	local weapon = client:GetActiveWeapon()
 
 	if IsValid(weapon) then
@@ -220,17 +220,24 @@ concommand.Add("unity_dropweapon", function(client)
 	end
 end)
 
-concommand.Add("unity_dropammo", function(client, cmd, args)
+concommand.Add("unity_dropammo", function(client, cmd, args, argStr)
 	local weapon = client:GetActiveWeapon()
+	local bDropSecondary = (tonumber(args[1]) or 0) >= 1
 
 	if IsValid(weapon) and weapon:GetClass() ~= "weapon_frag" then
 		local ammoType = weapon:GetPrimaryAmmoType()
+
+		if bDropSecondary then
+			ammoType = weapon:GetSecondaryAmmoType()
+		end
+
 		local ammoTypeName = string.lower(game.GetAmmoName(ammoType) or "")
 		local ammoCount = client:GetAmmoCount(ammoType)
-		local dropAmount = tonumber(args[1])
 
-		if not dropAmount then
-			dropAmount = weapon:GetMaxClip1()
+		dropAmount = weapon:GetMaxClip1()
+
+		if bDropSecondary then
+			dropAmount = 1
 		end
 
 		if ammoCount < dropAmount then
