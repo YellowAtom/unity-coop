@@ -188,7 +188,7 @@ concommand.Add("unity_dropweapon", function(client, cmd, args, argStr)
 		local ammoType = weapon:GetPrimaryAmmoType()
 		local ammoCount = client:GetAmmoCount(ammoType)
 
-		if ammoCount > 0 then
+		if ammoCount > 0 and weaponClass ~= "weapon_frag" then
 			timer.Simple(0.1, function()
 				local ammoEnt = client:DropAmmo(string.lower(game.GetAmmoName(ammoType) or ""), ammoCount)
 				local ammoEntPhys = ammoEnt:GetPhysicsObject()
