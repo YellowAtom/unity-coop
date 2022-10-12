@@ -38,15 +38,3 @@ GM.DefaultPlayerModels = {
 	"models/player/group03m/female_05.mdl",
 	"models/player/group03m/female_06.mdl"
 }
-
-function GM:Initialize()
-end
-
--- Should be using this instead of setting players collsion group to a 
--- passable door, this doesn't appear to function though despite being a wiki example.
-
---[[ function GM:ShouldCollide( entity1, entity2 )
-	if (entity1:IsPlayer() and entity2:IsPlayer()) then 
-		return false 
-	end
-end ]]

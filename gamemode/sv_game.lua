@@ -12,6 +12,60 @@ cvars.AddChangeCallback("unity_difficulty", function(convar, oldValue, newValue)
 	end
 end)
 
+function GM:OnNPCKilled(npc, attacker, inflictor)
+	if attacker:IsPlayer() then
+		attacker:AddFrags(1)
+	end
+end
+
+function GM:PlayerNoClip(client, desiredNoClipState)
+	if (client:IsAdmin() or not desiredNoClipState) and client:Alive() then return true end
+
+	return false
+end
+
+function GM:KeyPress(client, key)
+	if not client:Alive() and client:GetMoveType() == MOVETYPE_OBSERVER then
+		if key == IN_ATTACK then
+			local alivePlayers = self:GetAlivePlayers()
+			if #alivePlayers < 1 then return end
+			local currentTarget = client:GetObserverTarget()
+			local target = nil
+
+			if IsValid(currentTarget) then
+				for k, v in ipairs(alivePlayers) do
+					if v == currentTarget then
+						target = k == #alivePlayers and alivePlayers[1] or alivePlayers[k + 1]
+					end
+				end
+			end
+
+			if not IsValid(target) then
+				target = alivePlayers[math.random(#alivePlayers)]
+			end
+
+			client:Spectate(OBS_MODE_CHASE)
+			client:SpectateEntity(target)
+		end
+
+		if key == IN_JUMP and client:GetObserverMode() ~= OBS_MODE_ROAMING then
+			client:Spectate(OBS_MODE_ROAMING)
+		end
+	end
+end
+
+function GM:GetAlivePlayers()
+	local alivePlayers = {}
+
+	for k, v in ipairs(player.GetAll()) do
+		if IsValid(v) and v:Alive() then
+			table.insert(alivePlayers, v)
+		end
+	end
+
+	return alivePlayers
+end
+
 local DAMAGE_TAKE_SCALE = {
 	[1] = 0.5,
 	[2] = 1.0,
@@ -68,4 +122,20 @@ function GM:GameOver()
 			GAME_ENDING = nil
 		end)
 	end)
+end
+
+-- Gamemode Controls
+function GM:ShowHelp(client)
+	client:ConCommand("unity_menu")
+end
+
+function GM:ShowTeam(client)
+end
+
+function GM:ShowSpare1(client)
+	client:ConCommand("unity_dropweapon")
+end
+
+function GM:ShowSpare2(client)
+	client:ConCommand("unity_dropammo")
 end
