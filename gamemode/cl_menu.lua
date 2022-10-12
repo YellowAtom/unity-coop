@@ -218,14 +218,14 @@ function PANEL:CreateHelp()
 
 	local featuresText = vgui.Create("DLabel", container)
 	featuresText:SetText([[
-The host or an admin can adjust the difficulty of the game in settings.
-Hardcore Mode means when all players are dead at the same time the level resets.
-When you walk over a weapon you already own you take the ammo from it's clip but leave the weapon where it is.
-You can drop the ammo of the weapon you're currently holding as well as drop the weapon itself.
-You cannot pick up ammo of a weapon you don't currently have.
-Movement speed and jump height match Half-Life 2 instead of Garry's Mod.
-Scorebaord tracks NPC Kills and resets with the level.
-All weapons have the same ammo caps as Half-Life 2.]])
+• The host or an admin can adjust the difficulty of the game in settings, this affects how much ammo is given and npc damage resistance.
+• Hardcore Mode means when all players are dead at the same time the level resets.
+• When you walk over a weapon you already own you take the ammo from it's clip but leave the weapon where it is.
+• You can drop the primary and secondary ammo of the weapon you're currently holding as well as drop the weapon itself.
+• You cannot pick up ammo of a weapon you don't currently have.
+• Movement speed and jump height match Half-Life 2 instead of Garry's Mod.
+• Scorebaord tracks NPC Kills and resets with the level.
+• All weapons have the same ammo caps as Half-Life 2.]])
 	featuresText:SetColor(Color(0, 0, 0))
 	featuresText:SetAutoStretchVertical(true)
 	featuresText:SetFont("DermaDefault")
@@ -240,7 +240,11 @@ All weapons have the same ammo caps as Half-Life 2.]])
 	controlsHeader:DockMargin(10, 10, 0, 5)
 	controlsHeader:Dock(TOP)
 
-	local controlsTable = {"F1 - Gamemode Menu", "F3 - Drop Weapon", "F4 - Drop Ammo"}
+	local controlsTable = {
+		"F1 - Gamemode Menu",
+		"F3 - Drop Weapon",
+		"F4 - Drop Ammo",
+		"F4 + R - Drop Secondary Ammo"}
 
 	for k, v in ipairs(controlsTable) do
 		local control = container:Add("DLabel")
